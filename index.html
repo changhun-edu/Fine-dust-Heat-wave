@@ -127,6 +127,13 @@
     .notice { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 18px; padding: 16px; color: #334155; line-height: 1.55; font-size: 15px; }
     .smallText { font-size: 13px; color: var(--muted); }
     .hidden { display: none !important; }
+    
+    /* 지도 팝업 버튼 전용 스타일 */
+    .mapBtn { 
+      background: #1e293b; color: white; padding: 12px; font-size: 14px; border-radius: 12px; margin-top: 10px; 
+      display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none; border: none;
+    }
+    .mapBtn:hover { background: #0f172a; }
   </style>
 </head>
 <body>
@@ -170,8 +177,11 @@
           </div>
           
           <div id="customBox" class="hidden">
-            <div class="notice" style="margin-bottom:10px; padding:10px;">
-              목록에 원하는 지역이 없거나 통신 에러 발생 시, 에어코리아(airkorea.or.kr)에서 유효한 <b>측정소명</b>을 찾아 직접 입력하세요.
+            <div class="notice" style="margin-bottom:12px; padding:12px;">
+              목록에 원하는 지역이 없거나 통신 장애 발생 시, 아래 버튼을 눌러 지도에서 <b>학교와 가장 가까운 측정소명</b>을 찾아보세요.
+              <button type="button" class="mapBtn" onclick="window.open('https://www.airkorea.or.kr/web/stationInfo', '_blank')">
+                📍 에어코리아 측정소 지도 열기
+              </button>
             </div>
             <div class="row">
               <div><label for="customName">표시 지역명</label><input id="customName" placeholder="예: 광주 북구" /></div>
@@ -204,7 +214,6 @@
     const AIRKOREA_URL = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty";
     const KMA_WARN_URL = "https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList";
 
-    // 전국 행정구역 및 대표 에어코리아 측정소 매칭 데이터
     const REGION_DATA = {
       "서울": {
         warnArea: "서울",
@@ -248,7 +257,6 @@
       "광주": {
         warnArea: "광주",
         list: [
-          // 광주 북구의 데이터 안정성을 위해 '운암동'을 사용합니다.
           { name: "북구", station: "운암동" }, { name: "동구", station: "서석동" }, { name: "서구", station: "농성동" }, 
           { name: "남구", station: "주월동" }, { name: "광산구", station: "송정1동" }
         ]
@@ -349,8 +357,8 @@
     };
 
     const LS = {
-      settings: "outdoor_activity_settings_v2",
-      history: "outdoor_activity_history_v2"
+      settings: "outdoor_activity_settings_v3",
+      history: "outdoor_activity_history_v3"
     };
 
     const $ = (id) => document.getElementById(id);
@@ -396,7 +404,6 @@
       localStorage.setItem(LS.history, JSON.stringify(history));
     }
 
-    // 2단계 지역 선택 초기화
     function initRegionSelect() {
       const sidoSelect = $("sidoSelect");
       const sigunguSelect = $("sigunguSelect");
@@ -457,7 +464,7 @@
         name: `${settings.sido} ${sigunguData.name}`,
         stationName: sigunguData.station,
         warnArea: sidoData.warnArea,
-        sigunguName: sigunguData.name // 기상청 특보 매칭용
+        sigunguName: sigunguData.name
       };
     }
 
@@ -554,7 +561,6 @@
       const items = data?.response?.body?.items?.item || [];
       const list = Array.isArray(items) ? items : [items].filter(Boolean);
 
-      // 기상청 데이터 필터링 (특보 구역명 또는 시군구명 포함 여부)
       const filtered = list
         .map(item => JSON.stringify(item))
         .filter(text => {
@@ -618,7 +624,14 @@
       card.className = "card statusCard unknown";
       $("statusIcon").textContent = "?";
       $("statusTitle").textContent = "조회 실패";
-      $("reasons").innerHTML = `<div class="reason" style="color:var(--red); font-size:20px;">${err.message || "설정 영역에서 올바른 지역/측정소명을 확인해주세요."}</div>`;
+      
+      // 친절한 에러 해결 가이드 표시
+      $("reasons").innerHTML = `
+        <div class="reason" style="color:var(--red); font-size:22px;">해당 측정소가 점검 중이거나 응답이 없습니다.</div>
+        <div class="reason" style="font-size:16px; font-weight:normal; background:#fff; padding:16px;">
+          💡 <b>해결 방법</b><br>우측 설정에서 시/군/구를 <b>[직접 입력]</b>으로 바꾼 뒤,<br><b>[📍 지도 열기]</b> 버튼을 눌러 지도에 표시된 인근의 다른 측정소명(예: 건국동, 우산동 등)을 찾아 입력해보세요.
+        </div>
+      `;
       $("lastUpdated").textContent = `조회 오류`;
     }
 
@@ -714,7 +727,6 @@
     initRegionSelect();
     renderCalendar();
     
-    // 자동 로드
     checkNow().catch(renderError);
   </script>
 </body>
