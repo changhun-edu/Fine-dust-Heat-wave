@@ -107,19 +107,40 @@
 
     /* ── LOCATION MODAL ── */
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
-    .modal{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:32px 28px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,.5);}
-    .modal h2{font-size:clamp(18px,2.2vw,26px);font-weight:900;margin-bottom:6px;}
-    .modal p{color:var(--muted);font-size:clamp(13px,1.3vw,15px);font-weight:700;margin-bottom:22px;line-height:1.6;}
-    .sel-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
-    @media(max-width:440px){.sel-row{grid-template-columns:1fr 1fr;}}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:28px 26px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+    .modal h2{font-size:clamp(18px,2.2vw,24px);font-weight:900;margin-bottom:6px;}
+    .modal p{color:var(--muted);font-size:clamp(12px,1.2vw,14px);font-weight:700;margin-bottom:18px;line-height:1.6;}
+
+    /* 탭 */
+    .tab-row{display:flex;gap:8px;margin-bottom:18px;}
+    .tab-btn{flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-family:inherit;font-size:clamp(13px,1.3vw,15px);font-weight:900;cursor:pointer;transition:all .2s;}
+    .tab-btn.active{background:var(--good);color:#000;border-color:var(--good);}
+
+    /* 학교 검색 */
+    .school-search-row{display:flex;gap:8px;margin-bottom:10px;}
+    .school-input{flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:inherit;font-size:clamp(13px,1.3vw,15px);font-weight:700;}
+    .school-input:focus{outline:none;border-color:var(--good);}
+    .search-btn{background:var(--good);color:#000;border:0;border-radius:12px;padding:12px 18px;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer;white-space:nowrap;}
+    .search-btn:disabled{opacity:.5;cursor:not-allowed;}
+    .school-list{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+    .school-item{background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:border-color .15s;}
+    .school-item:hover{border-color:var(--good);}
+    .school-item.selected{border-color:var(--good);background:rgba(0,208,132,.08);}
+    .school-name{font-size:clamp(13px,1.4vw,16px);font-weight:900;color:var(--text);}
+    .school-addr{font-size:clamp(11px,1.1vw,13px);font-weight:700;color:var(--muted);margin-top:3px;}
+    .school-msg{text-align:center;padding:20px;color:var(--muted);font-weight:700;font-size:14px;}
+
+    /* 직접선택 */
+    .sel-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
     .sel-row select{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 10px;color:var(--text);font-family:inherit;font-size:clamp(13px,1.3vw,15px);font-weight:700;width:100%;}
     .sel-row select option{background:#1a1d27;}
-    .modal-preview{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:clamp(13px,1.3vw,15px);font-weight:700;color:var(--good);margin-bottom:18px;min-height:44px;}
+
+    .modal-preview{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:clamp(13px,1.3vw,15px);font-weight:700;color:var(--good);margin-bottom:14px;min-height:44px;}
     .modal-btns{display:flex;gap:10px;}
     .mbtn{flex:1;border:0;border-radius:12px;padding:13px;font-family:inherit;font-size:clamp(13px,1.4vw,16px);font-weight:900;cursor:pointer;transition:opacity .2s;}
     .mbtn:hover{opacity:.85;}
     .mbtn.confirm{background:var(--good);color:#000;}
-    .mbtn.cancel {background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+    .mbtn.cancel{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
 
     /* ── MISC ── */
     .spin{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:5px;}
@@ -430,12 +451,33 @@
 <div class="modal-bg" id="modalBg" style="display:none">
   <div class="modal">
     <h2>📍 지역 설정</h2>
-    <p>시/도 → 시/군/구 → 읍/면/동 순서로 선택하세요.<br>한 번 설정하면 다음 접속 시 자동으로 불러옵니다.</p>
-    <div class="sel-row">
-      <select id="selSido"   onchange="onSidoChange()"><option value="">시/도 선택</option></select>
-      <select id="selSigun"  onchange="onSigunChange()" disabled><option value="">시/군/구</option></select>
-      <select id="selDong"   onchange="onDongChange()"  disabled><option value="">읍/면/동</option></select>
+    <p>학교 이름으로 검색하거나, 시/도·시/군/구를 직접 선택하세요.<br>한 번 설정하면 다음 접속 시 자동으로 불러옵니다.</p>
+
+    <!-- 탭 -->
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabSchool" onclick="switchTab('school')">🏫 학교 이름으로 검색</button>
+      <button class="tab-btn"        id="tabManual" onclick="switchTab('manual')">📋 시/도·시/군/구 직접 선택</button>
     </div>
+
+    <!-- 탭1: 학교 검색 -->
+    <div id="paneSchool">
+      <div class="school-search-row">
+        <input class="school-input" id="schoolInput" type="text" placeholder="학교 이름 입력 (예: 빛고을초)" onkeydown="if(event.key==='Enter')searchSchool()"/>
+        <button class="search-btn" id="searchBtn" onclick="searchSchool()">검색</button>
+      </div>
+      <div class="school-list" id="schoolList">
+        <div class="school-msg">학교 이름을 입력하고 검색하세요</div>
+      </div>
+    </div>
+
+    <!-- 탭2: 직접 선택 -->
+    <div id="paneManual" style="display:none">
+      <div class="sel-row">
+        <select id="selSido"  onchange="onSidoChange()"><option value="">시/도 선택</option></select>
+        <select id="selSigun" onchange="onSigunChange()" disabled><option value="">시/군/구 선택</option></select>
+      </div>
+    </div>
+
     <div class="modal-preview" id="locPreview">선택된 지역 없음</div>
     <div class="modal-btns">
       <button class="mbtn cancel"  onclick="closeModal()">취소</button>
@@ -784,87 +826,162 @@ function loadLoc(){
 /* ═══════════════════════════════════════════
    MODAL
 ═══════════════════════════════════════════ */
-let pendingLoc = null;
+const NEIS_KEY = 'ba946f12ee3c429bbc1ab08cbb2eace5';
+const NEIS_URL = 'https://open.neis.go.kr/hub/schoolInfo';
 
+/* ── SIDO → 에어코리아 sidoName 매핑 (NEIS LCTN_SC_NM 기준) ── */
+const LCTN_TO_SIDO = {
+  '서울특별시':'서울특별시','부산광역시':'부산광역시','대구광역시':'대구광역시',
+  '인천광역시':'인천광역시','광주광역시':'광주광역시','대전광역시':'대전광역시',
+  '울산광역시':'울산광역시','세종특별자치시':'세종특별자치시','경기도':'경기도',
+  '강원특별자치도':'강원특별자치도','충청북도':'충청북도','충청남도':'충청남도',
+  '전북특별자치도':'전북특별자치도','전라남도':'전라남도','경상북도':'경상북도',
+  '경상남도':'경상남도','제주특별자치도':'제주특별자치도'
+};
+
+let pendingLoc = null;
+let currentTab = 'school';
+
+/* ── 탭 전환 ── */
+function switchTab(tab){
+  currentTab = tab;
+  document.getElementById('tabSchool').classList.toggle('active', tab==='school');
+  document.getElementById('tabManual').classList.toggle('active', tab==='manual');
+  document.getElementById('paneSchool').style.display = tab==='school' ? '' : 'none';
+  document.getElementById('paneManual').style.display = tab==='manual' ? '' : 'none';
+  setPending(null);
+}
+
+function setPending(loc){
+  pendingLoc = loc;
+  const preview = document.getElementById('locPreview');
+  const btn = document.getElementById('confirmBtn');
+  if(loc){
+    preview.textContent = '📍 ' + loc.label;
+    btn.disabled = false;
+  } else {
+    preview.textContent = '선택된 지역 없음';
+    btn.disabled = true;
+  }
+}
+
+/* ── 모달 열기 ── */
 function openModal(){
   document.getElementById('modalBg').style.display='flex';
-  // sido 초기화
+  setPending(null);
+
+  // 학교 검색 탭 초기화
+  document.getElementById('schoolInput').value = '';
+  document.getElementById('schoolList').innerHTML = '<div class="school-msg">학교 이름을 입력하고 검색하세요</div>';
+
+  // 직접선택 탭 초기화
   const sEl = document.getElementById('selSido');
   sEl.innerHTML = '<option value="">시/도 선택</option>';
   Object.keys(REGIONS).forEach(s=>{
     const o=document.createElement('option'); o.value=s; o.textContent=s; sEl.appendChild(o);
   });
-  document.getElementById('selSigun').innerHTML='<option value="">시/군/구</option>';
+  document.getElementById('selSigun').innerHTML='<option value="">시/군/구 선택</option>';
   document.getElementById('selSigun').disabled=true;
-  document.getElementById('selDong').innerHTML='<option value="">읍/면/동</option>';
-  document.getElementById('selDong').disabled=true;
-  document.getElementById('locPreview').textContent='선택된 지역 없음';
-  document.getElementById('confirmBtn').disabled=true;
-  pendingLoc=null;
 
-  // 기존 저장값 복원
+  // 저장된 값 복원
   const saved = loadLoc();
   if(saved){
-    sEl.value = saved.sido;
-    onSidoChange();
-    setTimeout(()=>{
-      document.getElementById('selSigun').value=saved.sigun;
-      onSigunChange();
-      setTimeout(()=>{
-        document.getElementById('selDong').value=saved.dong;
-        onDongChange();
-      },0);
-    },0);
+    switchTab('school');
+    // 학교명이 저장된 경우 검색창에 표시
+    if(saved.schoolName){
+      document.getElementById('schoolInput').value = saved.schoolName;
+    }
+  } else {
+    switchTab('school');
   }
 }
 
 function closeModal(){ document.getElementById('modalBg').style.display='none'; }
 
+/* ── NEIS 학교 검색 ── */
+async function searchSchool(){
+  const q = document.getElementById('schoolInput').value.trim();
+  if(!q){ alert('학교 이름을 입력하세요'); return; }
+
+  const btn = document.getElementById('searchBtn');
+  const list = document.getElementById('schoolList');
+  btn.disabled = true;
+  btn.textContent = '검색중…';
+  list.innerHTML = '<div class="school-msg">검색 중입니다…</div>';
+  setPending(null);
+
+  try{
+    // NEIS API (CORS 허용됨 - 직접 호출)
+    const url = `${NEIS_URL}?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=20&SCHUL_NM=${encodeURIComponent(q)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const rows = data?.schoolInfo?.[1]?.row;
+    if(!rows || !rows.length){
+      list.innerHTML = '<div class="school-msg">검색 결과가 없습니다. 학교 이름을 다시 확인해주세요.</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    rows.forEach(r => {
+      const sido   = LCTN_TO_SIDO[r.LCTN_SC_NM] || r.LCTN_SC_NM;
+      // ORG_RDNMA: "광주광역시 북구 일곡로 00" 형태 → 시군구 추출
+      const addrParts = (r.ORG_RDNMA || '').split(' ');
+      const sigun = addrParts.length >= 2 ? addrParts[1] : '';
+
+      const el = document.createElement('div');
+      el.className = 'school-item';
+      el.innerHTML = `
+        <div class="school-name">${r.SCHUL_NM} <span style="font-size:12px;color:var(--muted);font-weight:700;">${r.SCHUL_KND_SC_NM}</span></div>
+        <div class="school-addr">📍 ${r.ORG_RDNMA || r.LCTN_SC_NM}</div>
+      `;
+      el.onclick = () => {
+        document.querySelectorAll('.school-item').forEach(i=>i.classList.remove('selected'));
+        el.classList.add('selected');
+        setPending({
+          sido,
+          sigun,
+          label: `${r.SCHUL_NM} (${sido} ${sigun})`.trim(),
+          schoolName: r.SCHUL_NM,
+        });
+      };
+      list.appendChild(el);
+    });
+
+  } catch(e){
+    list.innerHTML = `<div class="school-msg">검색 오류: ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '검색';
+  }
+}
+
+/* ── 직접선택: 시도 변경 ── */
 function onSidoChange(){
-  const sido = document.getElementById('selSido').value;
-  const sEl  = document.getElementById('selSigun');
+  const sido  = document.getElementById('selSido').value;
+  const sEl   = document.getElementById('selSigun');
   sEl.innerHTML = '<option value="">시/군/구 선택</option>';
-  sEl.disabled = !sido;
+  sEl.disabled  = !sido;
   if(sido && REGIONS[sido]){
     Object.keys(REGIONS[sido]).forEach(sg=>{
       const o=document.createElement('option'); o.value=sg; o.textContent=sg; sEl.appendChild(o);
     });
   }
-  document.getElementById('selDong').innerHTML='<option value="">읍/면/동</option>';
-  document.getElementById('selDong').disabled=true;
-  document.getElementById('locPreview').textContent='선택된 지역 없음';
-  document.getElementById('confirmBtn').disabled=true;
-  pendingLoc=null;
+  setPending(null);
 }
 
+/* ── 직접선택: 시군구 변경 ── */
 function onSigunChange(){
   const sido  = document.getElementById('selSido').value;
   const sigun = document.getElementById('selSigun').value;
-  const dEl   = document.getElementById('selDong');
-  dEl.innerHTML = '<option value="">읍/면/동 선택</option>';
-  dEl.disabled = !sigun;
-  if(sido && sigun && REGIONS[sido]?.[sigun]){
-    REGIONS[sido][sigun].forEach(d=>{
-      const o=document.createElement('option'); o.value=d; o.textContent=d; dEl.appendChild(o);
-    });
-  }
-  document.getElementById('locPreview').textContent='읍/면/동을 선택하세요';
-  document.getElementById('confirmBtn').disabled=true;
-  pendingLoc=null;
-}
-
-function onDongChange(){
-  const sido  = document.getElementById('selSido').value;
-  const sigun = document.getElementById('selSigun').value;
-  const dong  = document.getElementById('selDong').value;
-  if(sido && sigun && dong){
-    const label = `${sido} ${sigun} ${dong}`;
-    document.getElementById('locPreview').textContent = '📍 ' + label;
-    document.getElementById('confirmBtn').disabled = false;
-    pendingLoc = { sido, sigun, dong, label };
+  if(sido && sigun){
+    setPending({ sido, sigun, label: `${sido} ${sigun}` });
+  } else {
+    setPending(null);
   }
 }
 
+/* ── 확정 ── */
 function confirmLocation(){
   if(!pendingLoc) return;
   saveLoc(pendingLoc);
@@ -874,7 +991,11 @@ function confirmLocation(){
 }
 
 function applyLoc(loc){
-  document.getElementById('locSpan').textContent = loc.label;
+  // 헤더 표시: 학교명 있으면 학교명, 없으면 시도+시군구
+  const display = loc.schoolName
+    ? `${loc.schoolName}`
+    : `${loc.sido} ${loc.sigun||''}`.trim();
+  document.getElementById('locSpan').textContent = display;
   document.getElementById('locPill').classList.add('set');
 }
 
