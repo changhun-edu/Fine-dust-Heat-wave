@@ -30,27 +30,46 @@
       background: linear-gradient(180deg, #edf4ff 0%, var(--bg) 240px);
       color: var(--text);
     }
-    .wrap { max-width: 980px; margin: 0 auto; padding: 22px 16px 46px; }
-    header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin: 8px 0 18px; }
-    h1 { margin: 0; font-size: clamp(25px, 4.5vw, 42px); letter-spacing: -0.05em; }
-    .sub { color: var(--muted); margin-top: 8px; font-size: 15px; line-height: 1.5; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 22px 16px 46px; }
+    header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin: 8px 0 24px; }
+    h1 { margin: 0; font-size: clamp(30px, 5vw, 50px); letter-spacing: -0.05em; font-weight: 900; }
+    .sub { color: var(--muted); margin-top: 8px; font-size: 18px; line-height: 1.5; font-weight: 600; }
     .pill {
       border: 1px solid var(--line);
       background: rgba(255,255,255,.8);
       border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 13px;
+      padding: 10px 16px;
+      font-size: 15px;
+      font-weight: 700;
       white-space: nowrap;
       color: var(--muted);
     }
-    .grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 16px; }
-    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } header { align-items: flex-start; flex-direction: column; } }
-    .card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid rgba(229,231,235,.8); }
-    .statusCard { min-height: 280px; display: flex; flex-direction: column; justify-content: space-between; }
-    .statusBig { display: flex; gap: 16px; align-items: center; margin: 8px 0 18px; }
-    .statusIcon { width: 72px; height: 72px; border-radius: 24px; display: grid; place-items: center; font-size: 38px; flex: 0 0 auto; }
-    .statusTitle { font-size: clamp(30px, 6vw, 54px); font-weight: 900; letter-spacing: -0.06em; line-height: 1.05; margin: 0; }
-    .statusDesc { font-size: 17px; color: var(--muted); margin: 10px 0 0; line-height: 1.55; }
+    
+    .grid { display: grid; grid-template-columns: 1.5fr 0.5fr; gap: 20px; }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } header { align-items: flex-start; flex-direction: column; } }
+    
+    .card { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid rgba(229,231,235,.8); }
+    
+    .statusCard { 
+      min-height: 500px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between;
+      align-items: center;
+      text-align: center;
+    }
+    .statusCenter {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 30px 0;
+    }
+    .statusIcon { width: 140px; height: 140px; border-radius: 40px; display: grid; place-items: center; font-size: 80px; flex: 0 0 auto; }
+    .statusTitle { font-size: clamp(60px, 8vw, 110px); font-weight: 900; letter-spacing: -0.06em; line-height: 1.1; margin: 24px 0 0; }
+    
     .possible .statusIcon { background: var(--green-bg); color: var(--green); }
     .possible .statusTitle { color: var(--green); }
     .caution .statusIcon { background: var(--yellow-bg); color: var(--yellow); }
@@ -59,44 +78,54 @@
     .ban .statusTitle { color: var(--red); }
     .unknown .statusIcon { background: var(--blue-bg); color: var(--blue); }
     .unknown .statusTitle { color: var(--blue); }
-    .reasons { display: grid; gap: 8px; margin-top: 14px; }
-    .reason { border: 1px solid var(--line); background: #fafafa; border-radius: 14px; padding: 11px 12px; font-weight: 700; }
-    .controls { display: grid; gap: 12px; }
-    label { display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px; color: #344054; }
-    select, input, button, textarea {
-      width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 12px 13px; font: inherit; background: white;
+    
+    .reasons { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; width: 100%; align-items: center; }
+    .reason { 
+      border: 1px solid var(--line); 
+      background: #fafafa; 
+      border-radius: 18px; 
+      padding: 16px 24px; 
+      font-weight: 800; 
+      font-size: 24px; 
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      color: #1f2937;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
     }
-    input[type="password"] { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    button { cursor: pointer; border: 0; background: var(--blue); color: white; font-weight: 900; box-shadow: 0 8px 18px rgba(37, 99, 235, .22); }
+    
+    .metricGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; margin-top: 20px; }
+    @media (max-width: 760px) { .metricGrid { grid-template-columns: repeat(2, 1fr); } }
+    .metric { background: #f9fafb; border: 1px solid var(--line); border-radius: 18px; padding: 16px; text-align: center; }
+    .metric .k { color: var(--muted); font-size: 14px; font-weight: 800; }
+    .metric .v { margin-top: 8px; font-size: 22px; font-weight: 900; letter-spacing: -0.03em; word-break: keep-all; }
+    
+    .controls { display: grid; gap: 12px; }
+    label { display: block; font-size: 14px; font-weight: 800; margin-bottom: 6px; color: #344054; }
+    select, input, button {
+      width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; font: inherit; background: white; font-size: 15px;
+    }
+    button { cursor: pointer; border: 0; background: var(--blue); color: white; font-weight: 900; box-shadow: 0 8px 18px rgba(37, 99, 235, .22); font-size: 16px; margin-top: 4px; }
     button.secondary { background: #111827; box-shadow: none; }
     button.ghost { background: white; color: #344054; border: 1px solid var(--line); box-shadow: none; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
-    .metricGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
-    @media (max-width: 760px) { .metricGrid { grid-template-columns: repeat(2, 1fr); } }
-    .metric { background: #f9fafb; border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
-    .metric .k { color: var(--muted); font-size: 12px; font-weight: 800; }
-    .metric .v { margin-top: 6px; font-size: 21px; font-weight: 900; letter-spacing: -0.03em; }
-    .sectionTitle { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 12px; }
-    .sectionTitle h2 { margin: 0; font-size: 21px; letter-spacing: -0.04em; }
-    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    
+    .sectionTitle { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 16px; }
+    .sectionTitle h2 { margin: 0; font-size: 22px; letter-spacing: -0.04em; }
+    
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
     @media (max-width: 760px) { .calendar { grid-template-columns: repeat(2, 1fr); } }
-    .day { border: 1px solid var(--line); border-radius: 16px; padding: 11px 9px; min-height: 98px; background: #fff; }
-    .day .date { font-size: 13px; color: var(--muted); font-weight: 800; }
-    .day .state { margin-top: 8px; font-weight: 900; font-size: 18px; }
-    .day .small { margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.35; }
-    .day.possible { background: var(--green-bg); border-color: #86efac; }
-    .day.caution { background: var(--yellow-bg); border-color: #fcd34d; }
-    .day.ban { background: var(--red-bg); border-color: #fecaca; }
-    .notice { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 18px; padding: 14px; color: #334155; line-height: 1.55; }
-    .copyBox { background: #111827; color: #f9fafb; border-radius: 18px; padding: 15px; line-height: 1.6; white-space: pre-wrap; }
-    .smallText { font-size: 12px; color: var(--muted); line-height: 1.55; }
-    .hidden { display: none !important; }
-    .footer { margin-top: 18px; color: var(--muted); font-size: 12px; line-height: 1.6; }
-    .tag { display: inline-flex; align-items:center; gap:4px; border-radius:999px; padding:5px 9px; font-weight:900; font-size:12px; }
-    .tag.possible { background: var(--green-bg); color: var(--green); }
-    .tag.caution { background: var(--yellow-bg); color: var(--yellow); }
-    .tag.ban { background: var(--red-bg); color: var(--red); }
+    .day { border: 1px solid var(--line); border-radius: 16px; padding: 14px 10px; min-height: 110px; background: #fff; text-align: center; }
+    .day .date { font-size: 14px; color: var(--muted); font-weight: 800; }
+    .day .state { margin-top: 10px; font-weight: 900; font-size: 20px; }
+    .day .small { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.4; word-break: keep-all; }
+    .day.possible { background: var(--green-bg); border-color: #86efac; color: var(--green); }
+    .day.caution { background: var(--yellow-bg); border-color: #fcd34d; color: var(--yellow); }
+    .day.ban { background: var(--red-bg); border-color: #fecaca; color: var(--red); }
+    
+    .notice { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 18px; padding: 16px; color: #334155; line-height: 1.55; font-size: 15px; }
+    .smallText { font-size: 13px; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -104,95 +133,218 @@
     <header>
       <div>
         <h1>오늘 야외활동 가능?</h1>
-        <div class="sub">미세먼지와 폭염특보를 확인해 운동장 사용 가능 여부를 자동 판단합니다.</div>
+        <div class="sub">미세먼지와 폭염특보를 확인하여 자동으로 알려줍니다.</div>
       </div>
       <div class="pill" id="lastUpdated">아직 조회 전</div>
     </header>
 
     <div class="grid">
       <main class="card statusCard unknown" id="statusCard">
-        <div>
-          <div class="statusBig">
-            <div class="statusIcon" id="statusIcon">?</div>
-            <div>
-              <p class="statusTitle" id="statusTitle">조회 필요</p>
-              <p class="statusDesc" id="statusDesc">지역을 한 번 저장하면 다음 접속부터 자동으로 조회합니다.</p>
-            </div>
-          </div>
+        <div class="statusCenter">
+          <div class="statusIcon" id="statusIcon">?</div>
+          <p class="statusTitle" id="statusTitle">조회 중...</p>
           <div class="reasons" id="reasons"></div>
-          <div class="metricGrid">
-            <div class="metric"><div class="k">PM10</div><div class="v" id="pm10">-</div></div>
-            <div class="metric"><div class="k">PM2.5</div><div class="v" id="pm25">-</div></div>
-            <div class="metric"><div class="k">폭염특보</div><div class="v" id="heatWarning">-</div></div>
-            <div class="metric"><div class="k">지역</div><div class="v" id="regionLabel">-</div></div>
-          </div>
         </div>
-        <div class="footer">※ 최종 판단은 학교·교육청 지침을 우선합니다. 본 페이지는 현장 확인을 돕는 보조 도구입니다.</div>
+        
+        <div class="metricGrid">
+          <div class="metric"><div class="k">미세먼지 (PM10)</div><div class="v" id="pm10">-</div></div>
+          <div class="metric"><div class="k">초미세먼지 (PM2.5)</div><div class="v" id="pm25">-</div></div>
+          <div class="metric"><div class="k">폭염특보 현황</div><div class="v" id="heatWarning">-</div></div>
+          <div class="metric"><div class="k">현재 판단 기준 지역</div><div class="v" id="regionLabel" style="font-size:18px">-</div></div>
+        </div>
       </main>
 
       <aside class="card">
-        <div class="sectionTitle"><h2>설정</h2><button class="ghost" id="resetBtn" style="width:auto;padding:8px 10px">초기화</button></div>
+        <div class="sectionTitle"><h2>설정</h2><button class="ghost" id="resetBtn" style="width:auto;padding:8px 12px">초기화</button></div>
         <div class="controls">
-          <div class="notice">
-            API 인증키는 페이지 내부에 반영되어 있습니다. 일반 사용자는 지역만 선택하면 됩니다.
-          </div>
-          <div>
-            <label for="regionSelect">지역 선택</label>
-            <select id="regionSelect"></select>
-          </div>
-          <div id="customBox" class="hidden">
-            <div class="row">
-              <div><label for="customName">표시 지역명</label><input id="customName" placeholder="예: 광주광역시 광산구" /></div>
-              <div><label for="customStation">에어코리아 측정소명</label><input id="customStation" placeholder="예: 우산동" /></div>
+          <div class="row">
+            <div>
+              <label for="sidoSelect">시/도</label>
+              <select id="sidoSelect"></select>
             </div>
-            <div style="margin-top:10px"><label for="customWarnArea">특보 지역명 검색어</label><input id="customWarnArea" placeholder="예: 광주광역시" /></div>
+            <div>
+              <label for="sigunguSelect">시/군/구</label>
+              <select id="sigunguSelect"></select>
+            </div>
           </div>
+          
           <button id="saveBtn">설정 저장</button>
-          <button class="secondary" id="checkBtn">지금 조회하기</button>
+          <button class="secondary" id="checkBtn">새로고침 (다시 조회)</button>
+        </div>
+        
+        <div class="sectionTitle" style="margin-top: 36px;"><h2>판단 기준</h2></div>
+        <div class="notice">
+          <b>금지</b>: 폭염경보, 미세먼지 매우나쁨/경보<br />
+          <b>자제</b>: 폭염주의보, 미세먼지 나쁨<br />
+          <b>가능</b>: 위 조건에 해당하지 않음<br /><br />
+          ※ 특정 동네의 측정소가 점검 중일 경우, 같은 구 내의 인접 측정소 데이터를 자동으로 찾아와 반영합니다.
         </div>
       </aside>
     </div>
 
-    <section class="card" style="margin-top:16px">
+    <section class="card" style="margin-top:20px">
       <div class="sectionTitle"><h2>최근 7일 기록</h2><span class="smallText">브라우저에 자동 저장</span></div>
       <div class="calendar" id="calendar"></div>
-      <div class="notice" style="margin-top:14px">
-        폭염의 “2일 이상 지속” 여부는 기상청 특보 발령이 이미 반영한 것으로 보고, 이 화면에서는 사용자가 확인한 날짜별 상태를 누적 표시합니다. 매일 한 번 접속하면 학교 자체 기록 달력처럼 사용할 수 있습니다.
-      </div>
-    </section>
-
-    <section class="card" style="margin-top:16px">
-      <div class="sectionTitle"><h2>교사용 안내문</h2><button class="ghost" id="copyBtn" style="width:auto;padding:8px 10px">복사</button></div>
-      <div class="copyBox" id="messageBox">조회 후 자동 생성됩니다.</div>
-    </section>
-
-    <section class="card" style="margin-top:16px">
-      <div class="sectionTitle"><h2>판단 기준</h2></div>
-      <div class="notice">
-        <b>야외활동 금지</b>: 폭염경보, 미세먼지 매우나쁨, 미세먼지 주의보·경보 수준<br />
-        <b>야외활동 자제</b>: 폭염주의보, 미세먼지 나쁨<br />
-        <b>야외활동 가능</b>: 위 조건에 해당하지 않음
-      </div>
     </section>
   </div>
 
   <script>
     const SERVICE_KEY = "9e644bbc9679873e697c8e70127dc6c6d1073968698887cef1fc34aba8e0a36c";
     const AIRKOREA_URL = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty";
-    const KMA_WARN_URL = "https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList";
+    const KMA_WARN_LIST_URL = "https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList";
+    const KMA_WARN_MSG_URL = "https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnMsg";
+    const KMA_WARN_STATUS_URL = "https://apis.data.go.kr/1360000/WthrWrnInfoService/getPwnStatus";
 
-    const REGIONS = [
-      { id: "gwangju-gwangsan", name: "광주광역시 광산구", stationName: "우산동", warnArea: "광주" },
-      { id: "gwangju-bukgu", name: "광주광역시 북구", stationName: "두암동", warnArea: "광주" },
-      { id: "gwangju-seogu", name: "광주광역시 서구", stationName: "농성동", warnArea: "광주" },
-      { id: "seoul-jongno", name: "서울특별시 종로구", stationName: "종로구", warnArea: "서울" },
-      { id: "busan-haeundae", name: "부산광역시 해운대구", stationName: "좌동", warnArea: "부산" },
-      { id: "custom", name: "직접 입력", stationName: "", warnArea: "" }
-    ];
+    // 1순위, 2순위, 3순위 대체 측정소를 배열(stations) 형태로 지정하여 무중단 서비스를 지원합니다.
+    const REGION_DATA = {
+      "서울": {
+        warnArea: "서울",
+        list: [
+          { name: "종로구", stations: ["종로구", "중구", "동대문구"] }, { name: "중구", stations: ["중구", "종로구", "용산구"] }, 
+          { name: "용산구", stations: ["용산구", "중구", "마포구"] }, { name: "성동구", stations: ["성동구", "광진구", "동대문구"] }, 
+          { name: "광진구", stations: ["광진구", "성동구", "중랑구"] }, { name: "동대문구", stations: ["동대문구", "성동구", "종로구"] },
+          { name: "중랑구", stations: ["중랑구", "동대문구", "노원구"] }, { name: "성북구", stations: ["성북구", "강북구", "종로구"] }, 
+          { name: "강북구", stations: ["강북구", "도봉구", "성북구"] }, { name: "도봉구", stations: ["도봉구", "노원구", "강북구"] }, 
+          { name: "노원구", stations: ["노원구", "도봉구", "중랑구"] }, { name: "은평구", stations: ["은평구", "서대문구", "마포구"] },
+          { name: "서대문구", stations: ["서대문구", "은평구", "마포구"] }, { name: "마포구", stations: ["마포구", "서대문구", "용산구"] }, 
+          { name: "양천구", stations: ["양천구", "강서구", "구로구"] }, { name: "강서구", stations: ["강서구", "양천구", "영등포구"] }, 
+          { name: "구로구", stations: ["구로구", "금천구", "양천구"] }, { name: "금천구", stations: ["금천구", "구로구", "관악구"] },
+          { name: "영등포구", stations: ["영등포구", "동작구", "양천구"] }, { name: "동작구", stations: ["동작구", "관악구", "영등포구"] }, 
+          { name: "관악구", stations: ["관악구", "동작구", "금천구"] }, { name: "서초구", stations: ["서초구", "강남구", "동작구"] }, 
+          { name: "강남구", stations: ["강남구", "서초구", "송파구"] }, { name: "송파구", stations: ["송파구", "강동구", "강남구"] }, 
+          { name: "강동구", stations: ["강동구", "송파구", "광진구"] }
+        ]
+      },
+      "광주": {
+        warnArea: "광주",
+        list: [
+          { name: "북구", stations: ["운암동", "건국동", "두암동", "일곡동"] }, 
+          { name: "광산구", stations: ["송정1동", "하남동", "평동", "우산동"] },
+          { name: "서구", stations: ["농성동", "치평동", "유덕동"] }, 
+          { name: "남구", stations: ["주월동", "백운동", "서석동"] }, 
+          { name: "동구", stations: ["서석동", "지산동", "두암동"] }
+        ]
+      },
+      "부산": {
+        warnArea: "부산",
+        list: [
+          { name: "해운대구", stations: ["좌동", "기장읍", "수영동"] }, { name: "부산진구", stations: ["전포동", "연산동", "대연동"] },
+          { name: "북구", stations: ["덕천동", "학장동", "대저동"] }, { name: "사하구", stations: ["장림동", "대신동"] },
+          { name: "남구", stations: ["대연동", "수영동", "전포동"] }, { name: "동래구", stations: ["명장동", "연산동"] },
+          { name: "금정구", stations: ["청룡동", "명장동"] }, { name: "연제구", stations: ["연산동", "전포동"] },
+          { name: "수영구", stations: ["수영동", "대연동"] }, { name: "사상구", stations: ["학장동", "덕천동"] },
+          { name: "강서구", stations: ["대저동", "학장동"] }, { name: "기장군", stations: ["기장읍", "좌동"] },
+          { name: "중구", stations: ["광복동", "수정동", "대신동"] }, { name: "동구", stations: ["수정동", "전포동"] },
+          { name: "서구", stations: ["대신동", "광복동"] }, { name: "영도구", stations: ["태종대", "광복동"] }
+        ]
+      },
+      "대구": {
+        warnArea: "대구",
+        list: [
+          { name: "중구", stations: ["수창동", "대명동"] }, { name: "동구", stations: ["신암동", "지산동"] },
+          { name: "서구", stations: ["이현동", "태전동"] }, { name: "남구", stations: ["대명동", "수창동"] },
+          { name: "북구", stations: ["태전동", "신암동"] }, { name: "수성구", stations: ["지산동", "신암동"] },
+          { name: "달서구", stations: ["호림동", "이현동"] }, { name: "달성군", stations: ["현풍읍", "호림동"] }
+        ]
+      },
+      "인천": {
+        warnArea: "인천",
+        list: [
+          { name: "남동구", stations: ["구월동", "논현", "고잔"] }, { name: "연수구", stations: ["동춘", "송도"] },
+          { name: "부평구", stations: ["부평", "삼산"] }, { name: "계양구", stations: ["계산", "부평"] },
+          { name: "서구", stations: ["연희", "석남"] }, { name: "미추홀구", stations: ["숭의", "구월동"] },
+          { name: "중구", stations: ["신흥", "운서"] }, { name: "동구", stations: ["송림", "신흥"] },
+          { name: "강화군", stations: ["강화", "길상"] }
+        ]
+      },
+      "대전": {
+        warnArea: "대전",
+        list: [
+          { name: "서구", stations: ["둔산동", "구성동"] }, { name: "유성구", stations: ["구성동", "노은동"] },
+          { name: "중구", stations: ["문창동", "대동"] }, { name: "동구", stations: ["대동", "문창동"] },
+          { name: "대덕구", stations: ["읍내동", "둔산동"] }
+        ]
+      },
+      "울산": {
+        warnArea: "울산",
+        list: [
+          { name: "남구", stations: ["야음동", "신정동", "삼산동"] }, { name: "중구", stations: ["성남동", "야음동"] },
+          { name: "동구", stations: ["전하동", "야음동"] }, { name: "북구", stations: ["농소동", "성남동"] },
+          { name: "울주군", stations: ["덕신리", "야음동"] }
+        ]
+      },
+      "경기": {
+        warnArea: "경기",
+        list: [
+          { name: "수원시", stations: ["신풍동", "영통동", "인계동"] }, { name: "성남시", stations: ["단대동", "정자동", "운중동"] },
+          { name: "고양시", stations: ["식사동", "행신동"] }, { name: "용인시", stations: ["기흥", "수지", "김량장동"] },
+          { name: "부천시", stations: ["내동", "소사본동"] }, { name: "안산시", stations: ["원곡동", "본오동"] },
+          { name: "안양시", stations: ["안양6동", "부림동"] }, { name: "남양주시", stations: ["금곡동", "별내동"] },
+          { name: "화성시", stations: ["우정읍", "동탄동"] }, { name: "평택시", stations: ["비전동", "안중읍"] },
+          { name: "의정부시", stations: ["의정부동", "가능동"] }, { name: "파주시", stations: ["금촌동", "운정동"] },
+          { name: "시흥시", stations: ["정왕동", "신천동"] }, { name: "김포시", stations: ["고촌읍", "사우동"] }
+        ]
+      },
+      "강원": {
+        warnArea: "강원",
+        list: [
+          { name: "춘천시", stations: ["석사동", "중앙로"] }, { name: "원주시", stations: ["명륜동", "반곡동"] },
+          { name: "강릉시", stations: ["옥천동"] }, { name: "동해시", stations: ["천곡동"] }, { name: "속초시", stations: ["동명동"] }
+        ]
+      },
+      "충북": {
+        warnArea: "충청북도",
+        list: [
+          { name: "청주시", stations: ["사천동", "복대동", "용암동"] }, { name: "충주시", stations: ["호암동", "칠금동"] },
+          { name: "제천시", stations: ["장락동", "청전동"] }
+        ]
+      },
+      "충남": {
+        warnArea: "충청남도",
+        list: [
+          { name: "천안시", stations: ["성황동", "백석동", "신방동"] }, { name: "아산시", stations: ["모종동", "배방읍"] },
+          { name: "서산시", stations: ["동문동", "독곶리"] }, { name: "당진시", stations: ["당진시청", "송악읍"] }
+        ]
+      },
+      "전북": {
+        warnArea: "전북특별자치도",
+        list: [
+          { name: "전주시", stations: ["노송동", "삼천동", "팔복동"] }, { name: "군산시", stations: ["신풍동", "소룡동"] },
+          { name: "익산시", stations: ["남중동", "모현동"] }
+        ]
+      },
+      "전남": {
+        warnArea: "전라남도",
+        list: [
+          { name: "목포시", stations: ["용당동", "부흥동"] }, { name: "여수시", stations: ["여천동", "문수동"] },
+          { name: "순천시", stations: ["장천동", "연향동"] }, { name: "광양시", stations: ["중동", "태인동"] }
+        ]
+      },
+      "경북": {
+        warnArea: "경상북도",
+        list: [
+          { name: "포항시", stations: ["대도동", "장량동", "오천읍"] }, { name: "구미시", stations: ["원평동", "4공단"] },
+          { name: "경주시", stations: ["성건동"] }, { name: "경산시", stations: ["중방동"] }
+        ]
+      },
+      "경남": {
+        warnArea: "경상남도",
+        list: [
+          { name: "창원시", stations: ["명서동", "사파동", "회원동", "웅남동"] }, { name: "진주시", stations: ["상대동", "대안동"] },
+          { name: "김해시", stations: ["동상동", "장유동"] }, { name: "양산시", stations: ["북부동", "삼호동"] }
+        ]
+      },
+      "제주": {
+        warnArea: "제주",
+        list: [
+          { name: "제주시", stations: ["이도동", "연동", "건입동"] }, { name: "서귀포시", stations: ["동홍동", "성산읍", "대정읍"] }
+        ]
+      }
+    };
 
     const LS = {
-      settings: "outdoor_activity_settings_v1",
-      history: "outdoor_activity_history_v1"
+      settings: "outdoor_activity_settings_final",
+      history: "outdoor_activity_history_final"
     };
 
     const $ = (id) => document.getElementById(id);
@@ -213,7 +365,6 @@
       return `${y}-${m}-${d} ${h}:${min}`;
     }
 
-    // [수정] 기상청 특보 조회 API 스펙에 맞춰 8자리(YYYYMMDD) 포맷으로 변경
     function kmaTime(date) {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -239,32 +390,45 @@
       localStorage.setItem(LS.history, JSON.stringify(history));
     }
 
+    function initRegionSelect() {
+      const sidoSelect = $("sidoSelect");
+      const sigunguSelect = $("sigunguSelect");
+
+      sidoSelect.innerHTML = Object.keys(REGION_DATA).map(sido => `<option value="${sido}">${sido}</option>`).join("");
+      sidoSelect.addEventListener("change", updateSigungu);
+
+      const settings = loadSettings();
+      sidoSelect.value = settings.sido || "서울";
+      updateSigungu();
+      
+      // 저장된 시군구가 새로운 시도 목록에 존재하는지 확인 후 반영
+      const options = Array.from(sigunguSelect.options).map(o => o.value);
+      if(options.includes(settings.sigungu)) {
+        sigunguSelect.value = settings.sigungu;
+      }
+    }
+
+    function updateSigungu() {
+      const sido = $("sidoSelect").value;
+      const sigunguSelect = $("sigunguSelect");
+      const list = REGION_DATA[sido].list;
+      sigunguSelect.innerHTML = list.map(item => `<option value="${item.name}">${item.name}</option>`).join("");
+    }
+
     function getSelectedRegion() {
       const settings = loadSettings();
-      if (settings.regionId === "custom") {
-        return {
-          id: "custom",
-          name: settings.customName || "직접 입력 지역",
-          stationName: settings.customStation || "",
-          warnArea: settings.customWarnArea || ""
-        };
-      }
-      return REGIONS.find(r => r.id === settings.regionId) || REGIONS[0];
-    }
+      const sido = settings.sido || "서울";
+      const sigungu = settings.sigungu || "종로구";
+      
+      const sidoData = REGION_DATA[sido];
+      const sigunguData = sidoData.list.find(x => x.name === sigungu) || sidoData.list[0];
 
-    function initRegionSelect() {
-      const select = $("regionSelect");
-      select.innerHTML = REGIONS.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
-      const settings = loadSettings();
-      select.value = settings.regionId || REGIONS[0].id;
-      $("customName").value = settings.customName || "";
-      $("customStation").value = settings.customStation || "";
-      $("customWarnArea").value = settings.customWarnArea || "";
-      toggleCustom();
-    }
-
-    function toggleCustom() {
-      $("customBox").classList.toggle("hidden", $("regionSelect").value !== "custom");
+      return {
+        name: `${sido} ${sigunguData.name}`,
+        stations: sigunguData.stations, // 배열 형태로 반환
+        warnArea: sidoData.warnArea,
+        sigunguName: sigunguData.name
+      };
     }
 
     function classifyDust(pm10, pm25) {
@@ -272,12 +436,12 @@
       const p25 = Number(pm25);
       let level = "good";
       let label = "좋음/보통";
-      let reason = "미세먼지 보통 이하";
+      let reason = "미세먼지 양호";
 
       if ((Number.isFinite(p10) && p10 >= 300) || (Number.isFinite(p25) && p25 >= 150)) {
         level = "ban";
         label = "경보 수준";
-        reason = "미세먼지 경보 수준";
+        reason = "미세먼지 경보 발령";
       } else if ((Number.isFinite(p10) && p10 >= 151) || (Number.isFinite(p25) && p25 >= 76)) {
         level = "ban";
         label = "매우나쁨";
@@ -294,63 +458,193 @@
       const t = String(text || "");
       if (/폭염.*경보|경보.*폭염/.test(t)) return { level: "ban", label: "경보", reason: "폭염경보 발령" };
       if (/폭염.*주의보|주의보.*폭염/.test(t)) return { level: "caution", label: "주의보", reason: "폭염주의보 발령" };
-      return { level: "good", label: "없음", reason: "폭염특보 없음" };
+      return { level: "good", label: "특보 없음", reason: "폭염특보 없음" };
     }
 
-    async function fetchAirKorea(serviceKey, stationName) {
-      const url = new URL(AIRKOREA_URL);
-      url.searchParams.set("serviceKey", serviceKey);
-      url.searchParams.set("returnType", "json");
-      url.searchParams.set("numOfRows", "24");
-      url.searchParams.set("pageNo", "1");
-      url.searchParams.set("stationName", stationName);
-      url.searchParams.set("dataTerm", "DAILY");
-      url.searchParams.set("ver", "1.0");
+    // 단일 측정소 조회 함수
+    async function fetchAirKoreaSingle(serviceKey, stationName) {
+      const queryParams = new URLSearchParams({
+        returnType: "json",
+        numOfRows: "24",
+        pageNo: "1",
+        stationName: stationName,
+        dataTerm: "DAILY",
+        ver: "1.4"
+      });
+      const url = `${AIRKOREA_URL}?serviceKey=${serviceKey}&${queryParams.toString()}`;
 
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error("에어코리아 API 응답 오류");
-      const data = await res.json();
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`네트워크 오류`);
+      
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch (e) { throw new Error(`파싱 오류`); }
+
+      const header = data?.response?.header;
+      if (header && header.resultCode !== "00") throw new Error(`서버 오류`);
+
       const items = data?.response?.body?.items || [];
-      if (!items.length) throw new Error("에어코리아 측정소 데이터를 찾지 못했습니다. 측정소명을 확인하세요.");
-      const item = items.find(x => x.pm10Value && x.pm25Value) || items[0];
+      if (!items.length) throw new Error(`데이터 없음`);
+
+      const item = items.find(x => x.pm10Value && x.pm10Value !== '-' && x.pm25Value && x.pm25Value !== '-') || items[0];
+      
+      // 데이터가 비어있는 경우(점검 중) 에러 처리
+      if(!item.pm10Value || item.pm10Value === '-') throw new Error("데이터 점검 중");
+
       return {
         pm10: item.pm10Value,
         pm25: item.pm25Value,
         dataTime: item.dataTime,
-        stationName
+        stationName: stationName
       };
     }
 
-    async function fetchKmaHeatWarning(serviceKey, warnArea) {
-      const now = new Date();
-      const from = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7);
-      const url = new URL(KMA_WARN_URL);
-      url.searchParams.set("serviceKey", serviceKey);
-      url.searchParams.set("pageNo", "1");
-      url.searchParams.set("numOfRows", "100");
-      url.searchParams.set("dataType", "JSON");
-      url.searchParams.set("stnId", "108"); // [수정] 전국 단위 특보 조회를 위한 지점코드(stnId) 필수값 추가
-      url.searchParams.set("fromTmFc", kmaTime(from));
-      url.searchParams.set("toTmFc", kmaTime(now));
-
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error("기상청 특보 API 응답 오류");
-      const data = await res.json();
-      const items = data?.response?.body?.items?.item || [];
-      const list = Array.isArray(items) ? items : [items].filter(Boolean);
-
-      const filtered = list
-        .map(item => JSON.stringify(item))
-        .filter(text => text.includes("폭염") && (!warnArea || text.includes(warnArea)));
-
-      if (!filtered.length) return { raw: "", label: "없음", level: "good", reason: "폭염특보 없음" };
-
-      const joined = filtered.join("\n");
-      if (/해제/.test(joined) && !/폭염.*(주의보|경보)|주의보.*폭염|경보.*폭염/.test(joined.replace(/해제/g, ""))) {
-        return { raw: joined, label: "없음", level: "good", reason: "폭염특보 없음" };
+    // [핵심 기능] 여러 측정소를 순회하며 응답할 때까지 재시도하는 무중단 조회 함수
+    async function fetchAirKoreaFallback(serviceKey, stations) {
+      let lastErrorMsg = "";
+      
+      for (let i = 0; i < stations.length; i++) {
+        try {
+          const result = await fetchAirKoreaSingle(serviceKey, stations[i]);
+          return result; // 성공하면 즉시 결과 반환 후 종료
+        } catch (err) {
+          console.warn(`[대체 동작] ${stations[i]} 측정소 응답 없음. 다음 측정소를 시도합니다.`);
+          lastErrorMsg = err.message;
+        }
       }
-      const heat = classifyHeat(joined);
-      return { raw: joined, ...heat };
+      
+      // 등록된 모든 측정소가 응답하지 않을 경우에만 최종 에러 발생
+      throw new Error(`모든 인접 측정소 조회 실패`);
+    }
+
+    function normalizeKmaItems(data) {
+      const items = data?.response?.body?.items?.item;
+      if (!items) return [];
+      return Array.isArray(items) ? items : [items].filter(Boolean);
+    }
+
+    function safeJsonText(value) {
+      if (value == null) return "";
+      if (typeof value === "string") return value;
+      try { return JSON.stringify(value); }
+      catch { return String(value); }
+    }
+
+    function isRegionRelated(text, region) {
+      const t = String(text || "");
+      if (!region.warnArea && !region.sigunguName) return true;
+
+      const sido = region.name.split(" ")[0];
+      const areaCandidates = [
+        region.warnArea,
+        region.sigunguName,
+        region.name,
+        sido,
+        `${sido}광역시`,
+        `${sido}특별시`,
+        `${sido}특별자치시`,
+        `${sido}특별자치도`
+      ].filter(Boolean);
+
+      return areaCandidates.some(area => t.includes(area));
+    }
+
+    function classifyHeatFromTexts(texts, region) {
+      const related = texts
+        .map(safeJsonText)
+        .filter(text => text.includes("폭염") && isRegionRelated(text, region));
+
+      if (!related.length) return { raw: "", label: "특보 없음", level: "good", reason: "폭염특보 없음" };
+
+      const joined = related.join("\n");
+      const withoutCancel = joined.replace(/폭염[^\n]*(해제|해제되|해제함)[^\n]*/g, "");
+
+      // 특보현황/통보문 안에서 현재 발효 문구를 우선 판단합니다. 경보가 주의보보다 우선입니다.
+      if (/폭염[^\n]*(경보|WARN|Warning)|경보[^\n]*폭염/.test(withoutCancel)) {
+        return { raw: joined, level: "ban", label: "경보", reason: "폭염경보 발령" };
+      }
+      if (/폭염[^\n]*(주의보|Advisory)|주의보[^\n]*폭염/.test(withoutCancel)) {
+        return { raw: joined, level: "caution", label: "주의보", reason: "폭염주의보 발령" };
+      }
+
+      // 관련 자료가 모두 해제 문구라면 특보 없음으로 처리합니다.
+      if (/해제/.test(joined)) return { raw: joined, label: "특보 없음", level: "good", reason: "폭염특보 없음" };
+
+      return { raw: joined, ...classifyHeat(joined) };
+    }
+
+    async function fetchKmaJson(url, params, serviceKey) {
+      const queryParams = new URLSearchParams(params);
+      const requestUrl = `${url}?serviceKey=${serviceKey}&${queryParams.toString()}`;
+
+      const res = await fetch(requestUrl);
+      if (!res.ok) throw new Error("기상청 연결 오류");
+
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); }
+      catch {
+        // 공공데이터포털은 오류가 있을 때 JSON 대신 XML을 돌려주는 경우가 있어 메시지를 최대한 추출합니다.
+        const msg = text.match(/<returnAuthMsg>(.*?)<\/returnAuthMsg>|<resultMsg>(.*?)<\/resultMsg>/)?.[1]
+          || text.match(/<returnReasonCode>(.*?)<\/returnReasonCode>/)?.[1]
+          || "기상청 응답 파싱 오류";
+        throw new Error(msg);
+      }
+
+      const header = data?.response?.header;
+      if (header && header.resultCode && header.resultCode !== "00") {
+        throw new Error(header.resultMsg || "기상청 서버 오류");
+      }
+      return data;
+    }
+
+    async function fetchKmaHeatWarning(serviceKey, region) {
+      const now = new Date();
+      const from = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 6);
+      const common = { pageNo: "1", numOfRows: "200", dataType: "JSON", stnId: "108" };
+
+      const collectedTexts = [];
+      const errors = [];
+
+      // 1) 현재 발효 중인 특보현황을 먼저 확인합니다. 기존 목록조회보다 현재 상태 판단에 적합합니다.
+      try {
+        const statusData = await fetchKmaJson(KMA_WARN_STATUS_URL, { pageNo: "1", numOfRows: "300", dataType: "JSON" }, serviceKey);
+        collectedTexts.push(...normalizeKmaItems(statusData).map(safeJsonText));
+        const statusResult = classifyHeatFromTexts(collectedTexts, region);
+        if (statusResult.level !== "good") return statusResult;
+      } catch (e) {
+        errors.push(e.message);
+      }
+
+      // 2) 현황 자료에 폭염이 잡히지 않는 경우 최근 통보문 전체를 다시 확인합니다.
+      try {
+        const msgData = await fetchKmaJson(KMA_WARN_MSG_URL, {
+          ...common,
+          fromTmFc: kmaTime(from),
+          toTmFc: kmaTime(now)
+        }, serviceKey);
+        collectedTexts.push(...normalizeKmaItems(msgData).map(safeJsonText));
+      } catch (e) {
+        errors.push(e.message);
+      }
+
+      // 3) 통보문도 실패하거나 지역명이 제목에만 있는 경우를 대비해 목록까지 보조 확인합니다.
+      try {
+        const listData = await fetchKmaJson(KMA_WARN_LIST_URL, {
+          ...common,
+          fromTmFc: kmaTime(from),
+          toTmFc: kmaTime(now)
+        }, serviceKey);
+        collectedTexts.push(...normalizeKmaItems(listData).map(safeJsonText));
+      } catch (e) {
+        errors.push(e.message);
+      }
+
+      if (!collectedTexts.length && errors.length) {
+        throw new Error(errors.join(" / "));
+      }
+
+      return classifyHeatFromTexts(collectedTexts, region);
     }
 
     function decide({ dust, heat, air, region }) {
@@ -358,7 +652,6 @@
       let state = "possible";
       let title = "야외활동 가능";
       let icon = "✓";
-      let desc = "현재 기준으로 운동장 사용이 가능합니다. 수업 전 한 번 더 확인하세요.";
 
       if (dust.level === "ban") reasons.push(dust.reason);
       if (heat.level === "ban") reasons.push(heat.reason);
@@ -370,18 +663,15 @@
         state = "ban";
         title = "야외활동 금지";
         icon = "!";
-        desc = "체육활동 및 운동장 사용을 중지하고 실내활동으로 대체하세요.";
       } else if (dust.level === "caution" || heat.level === "caution") {
         state = "caution";
         title = "야외활동 자제";
         icon = "△";
-        desc = "실외 체육활동을 줄이고, 필요 시 실내활동으로 조정하세요.";
       } else {
-        reasons.push("금지 또는 자제 조건 없음");
+        reasons.push("날씨가 활동하기 좋습니다");
       }
 
-      const message = `${ymdhm()} 기준, ${region.name}의 야외활동 판단 결과는 ‘${title}’입니다.\n\n사유: ${reasons.join(", ")}\n미세먼지 PM10 ${air.pm10}㎍/㎥, 초미세먼지 PM2.5 ${air.pm25}㎍/㎥, 폭염특보 ${heat.label}\n\n조치: ${desc}`;
-      return { state, title, icon, desc, reasons, message };
+      return { state, title, icon, reasons };
     }
 
     function renderResult(result, air, heat, region) {
@@ -389,24 +679,32 @@
       card.className = `card statusCard ${result.state}`;
       $("statusIcon").textContent = result.icon;
       $("statusTitle").textContent = result.title;
-      $("statusDesc").textContent = result.desc;
       $("pm10").textContent = `${air.pm10}㎍/㎥`;
       $("pm25").textContent = `${air.pm25}㎍/㎥`;
       $("heatWarning").textContent = heat.label;
-      $("regionLabel").textContent = region.name.replace("광주광역시 ", "광주 ");
-      $("lastUpdated").textContent = `최근 조회: ${ymdhm()}`;
+      
+      // 어떤 대체 측정소에서 데이터를 가져왔는지 화면에 투명하게 표시
+      $("regionLabel").textContent = `${region.name} (${air.stationName} 기준)`;
+      
+      $("lastUpdated").textContent = `최종 갱신: ${ymdhm()}`;
       $("reasons").innerHTML = result.reasons.map(r => `<div class="reason">${r}</div>`).join("");
-      $("messageBox").textContent = result.message;
     }
 
     function renderError(err) {
+      console.error(err);
       const card = $("statusCard");
       card.className = "card statusCard unknown";
       $("statusIcon").textContent = "?";
       $("statusTitle").textContent = "조회 실패";
-      $("statusDesc").textContent = err.message || "API 조회 중 오류가 발생했습니다.";
-      $("reasons").innerHTML = `<div class="reason">측정소명, 지역명, API 활용신청 상태를 확인하세요.</div>`;
-      $("lastUpdated").textContent = `오류: ${ymdhm()}`;
+      
+      $("reasons").innerHTML = `
+        <div class="reason" style="color:var(--red); font-size:22px;">해당 구역의 모든 측정소가 응답하지 않습니다.</div>
+        <div class="reason" style="font-size:16px; font-weight:normal; background:#fff; padding:16px;">
+          💡 <b>해결 방법</b><br>일시적인 장애일 수 있으니 잠시 후 <b>[새로고침]</b> 버튼을 누르시거나,<br>우측 설정에서 <b>인근의 다른 시/군/구</b>(예: 북구 대신 서구)를 선택하여 조회해보세요.
+        </div>
+      `;
+      $("lastUpdated").textContent = `조회 오류`;
+      $("regionLabel").textContent = "-";
     }
 
     function recordHistory(result, air, heat, region) {
@@ -414,22 +712,13 @@
       history[todayKey()] = {
         state: result.state,
         title: result.title,
-        reasons: result.reasons,
         pm10: air.pm10,
         pm25: air.pm25,
         heat: heat.label,
-        region: region.name,
         checkedAt: ymdhm()
       };
       saveHistory(history);
       renderCalendar();
-    }
-
-    function stateLabel(state) {
-      if (state === "ban") return "금지";
-      if (state === "caution") return "자제";
-      if (state === "possible") return "가능";
-      return "기록 없음";
     }
 
     function renderCalendar() {
@@ -441,11 +730,12 @@
         const key = todayKey(d);
         const item = history[key];
         const state = item?.state || "unknown";
+        const label = state === "ban" ? "금지" : state === "caution" ? "자제" : state === "possible" ? "가능" : "기록 없음";
         days.push(`
           <div class="day ${state}">
             <div class="date">${d.getMonth() + 1}/${d.getDate()}</div>
-            <div class="state">${stateLabel(state)}</div>
-            <div class="small">${item ? `${item.heat} · PM10 ${item.pm10} · PM2.5 ${item.pm25}` : "접속 기록 없음"}</div>
+            <div class="state">${label}</div>
+            <div class="small">${item ? `${item.heat}<br>PM10: ${item.pm10}` : "-"}</div>
           </div>
         `);
       }
@@ -454,46 +744,42 @@
 
     async function checkNow() {
       const region = getSelectedRegion();
-      const serviceKey = SERVICE_KEY;
-      if (!region.stationName) throw new Error("에어코리아 측정소명을 입력하세요.");
 
       $("checkBtn").textContent = "조회 중...";
       $("checkBtn").disabled = true;
       try {
-        const air = await fetchAirKorea(serviceKey, region.stationName);
+        // Fallback 로직이 적용된 함수 호출 (여러 측정소를 순회)
+        const air = await fetchAirKoreaFallback(SERVICE_KEY, region.stations);
         const dust = classifyDust(air.pm10, air.pm25);
         let heat;
-        try {
-          heat = await fetchKmaHeatWarning(serviceKey, region.warnArea);
-        } catch (e) {
-          heat = { level: "good", label: "확인 실패", reason: "폭염특보 확인 실패", raw: e.message };
+        try { 
+          heat = await fetchKmaHeatWarning(SERVICE_KEY, region); 
+        } catch (e) { 
+          console.warn("폭염특보 조회 실패", e);
+          heat = { level: "caution", label: "확인 실패", reason: "폭염특보 확인 필요" }; 
         }
+        
         const result = decide({ dust, heat, air, region });
         renderResult(result, air, heat, region);
         recordHistory(result, air, heat, region);
       } catch (err) {
         renderError(err);
       } finally {
-        $("checkBtn").textContent = "지금 조회하기";
+        $("checkBtn").textContent = "새로고침 (다시 조회)";
         $("checkBtn").disabled = false;
       }
     }
 
     function saveForm() {
-      const settings = {
-        regionId: $("regionSelect").value,
-        customName: $("customName").value.trim(),
-        customStation: $("customStation").value.trim(),
-        customWarnArea: $("customWarnArea").value.trim()
-      };
-      saveSettings(settings);
-      const region = getSelectedRegion();
-      $("regionLabel").textContent = region.name.replace("광주광역시 ", "광주 ");
-      alert("설정이 저장되었습니다. 다음 접속부터 다시 설정하지 않아도 됩니다.");
+      saveSettings({
+        sido: $("sidoSelect").value,
+        sigungu: $("sigunguSelect").value
+      });
+      checkNow().catch(renderError);
     }
 
     function resetAll() {
-      if (!confirm("저장된 설정과 최근 7일 기록을 모두 삭제할까요?")) return;
+      if (!confirm("저장된 설정과 기록을 모두 삭제할까요?")) return;
       localStorage.removeItem(LS.settings);
       localStorage.removeItem(LS.history);
       initRegionSelect();
@@ -501,24 +787,13 @@
       location.reload();
     }
 
-    $("regionSelect").addEventListener("change", toggleCustom);
     $("saveBtn").addEventListener("click", saveForm);
     $("checkBtn").addEventListener("click", () => checkNow().catch(renderError));
     $("resetBtn").addEventListener("click", resetAll);
-    $("copyBtn").addEventListener("click", async () => {
-      await navigator.clipboard.writeText($("messageBox").textContent);
-      alert("안내문을 복사했습니다.");
-    });
 
     initRegionSelect();
     renderCalendar();
-
-    const saved = loadSettings();
-    if (!saved.regionId) {
-      saveSettings({ regionId: REGIONS[0].id });
-    }
-    const region = getSelectedRegion();
-    $("regionLabel").textContent = region.name.replace("광주광역시 ", "광주 ");
+    
     checkNow().catch(renderError);
   </script>
 </body>
