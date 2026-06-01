@@ -98,7 +98,7 @@
     @media (max-width: 760px) { .metricGrid { grid-template-columns: repeat(2, 1fr); } }
     .metric { background: #f9fafb; border: 1px solid var(--line); border-radius: 18px; padding: 16px; text-align: center; }
     .metric .k { color: var(--muted); font-size: 14px; font-weight: 800; }
-    .metric .v { margin-top: 8px; font-size: 26px; font-weight: 900; letter-spacing: -0.03em; }
+    .metric .v { margin-top: 8px; font-size: 22px; font-weight: 900; letter-spacing: -0.03em; word-break: keep-all; }
     
     .controls { display: grid; gap: 12px; }
     label { display: block; font-size: 14px; font-weight: 800; margin-bottom: 6px; color: #344054; }
@@ -126,14 +126,6 @@
     
     .notice { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 18px; padding: 16px; color: #334155; line-height: 1.55; font-size: 15px; }
     .smallText { font-size: 13px; color: var(--muted); }
-    .hidden { display: none !important; }
-    
-    /* 지도 팝업 버튼 전용 스타일 */
-    .mapBtn { 
-      background: #1e293b; color: white; padding: 12px; font-size: 14px; border-radius: 12px; margin-top: 10px; 
-      display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none; border: none;
-    }
-    .mapBtn:hover { background: #0f172a; }
   </style>
 </head>
 <body>
@@ -158,7 +150,7 @@
           <div class="metric"><div class="k">미세먼지 (PM10)</div><div class="v" id="pm10">-</div></div>
           <div class="metric"><div class="k">초미세먼지 (PM2.5)</div><div class="v" id="pm25">-</div></div>
           <div class="metric"><div class="k">폭염특보 현황</div><div class="v" id="heatWarning">-</div></div>
-          <div class="metric"><div class="k">현재 설정 지역</div><div class="v" id="regionLabel">-</div></div>
+          <div class="metric"><div class="k">현재 판단 기준 지역</div><div class="v" id="regionLabel" style="font-size:18px">-</div></div>
         </div>
       </main>
 
@@ -176,20 +168,6 @@
             </div>
           </div>
           
-          <div id="customBox" class="hidden">
-            <div class="notice" style="margin-bottom:12px; padding:12px;">
-              목록에 원하는 지역이 없거나 통신 장애 발생 시, 아래 버튼을 눌러 지도에서 <b>학교와 가장 가까운 측정소명</b>을 찾아보세요.
-              <button type="button" class="mapBtn" onclick="window.open('https://www.airkorea.or.kr/web/stationInfo', '_blank')">
-                📍 에어코리아 측정소 지도 열기
-              </button>
-            </div>
-            <div class="row">
-              <div><label for="customName">표시 지역명</label><input id="customName" placeholder="예: 광주 북구" /></div>
-              <div><label for="customStation">측정소명</label><input id="customStation" placeholder="예: 운암동" /></div>
-            </div>
-            <div style="margin-top:10px"><label for="customWarnArea">특보 지역명 검색어</label><input id="customWarnArea" placeholder="예: 광주" /></div>
-          </div>
-          
           <button id="saveBtn">설정 저장</button>
           <button class="secondary" id="checkBtn">새로고침 (다시 조회)</button>
         </div>
@@ -198,7 +176,8 @@
         <div class="notice">
           <b>금지</b>: 폭염경보, 미세먼지 매우나쁨/경보<br />
           <b>자제</b>: 폭염주의보, 미세먼지 나쁨<br />
-          <b>가능</b>: 위 조건에 해당하지 않음
+          <b>가능</b>: 위 조건에 해당하지 않음<br /><br />
+          ※ 특정 동네의 측정소가 점검 중일 경우, 같은 구 내의 인접 측정소 데이터를 자동으로 찾아와 반영합니다.
         </div>
       </aside>
     </div>
@@ -214,151 +193,156 @@
     const AIRKOREA_URL = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty";
     const KMA_WARN_URL = "https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList";
 
+    // 1순위, 2순위, 3순위 대체 측정소를 배열(stations) 형태로 지정하여 무중단 서비스를 지원합니다.
     const REGION_DATA = {
       "서울": {
         warnArea: "서울",
         list: [
-          { name: "종로구", station: "종로구" }, { name: "중구", station: "중구" }, { name: "용산구", station: "용산구" },
-          { name: "성동구", station: "성동구" }, { name: "광진구", station: "광진구" }, { name: "동대문구", station: "동대문구" },
-          { name: "중랑구", station: "중랑구" }, { name: "성북구", station: "성북구" }, { name: "강북구", station: "강북구" },
-          { name: "도봉구", station: "도봉구" }, { name: "노원구", station: "노원구" }, { name: "은평구", station: "은평구" },
-          { name: "서대문구", station: "서대문구" }, { name: "마포구", station: "마포구" }, { name: "양천구", station: "양천구" },
-          { name: "강서구", station: "강서구" }, { name: "구로구", station: "구로구" }, { name: "금천구", station: "금천구" },
-          { name: "영등포구", station: "영등포구" }, { name: "동작구", station: "동작구" }, { name: "관악구", station: "관악구" },
-          { name: "서초구", station: "서초구" }, { name: "강남구", station: "강남구" }, { name: "송파구", station: "송파구" }, { name: "강동구", station: "강동구" }
-        ]
-      },
-      "부산": {
-        warnArea: "부산",
-        list: [
-          { name: "중구", station: "광복동" }, { name: "서구", station: "대신동" }, { name: "동구", station: "수정동" },
-          { name: "영도구", station: "태종대" }, { name: "부산진구", station: "전포동" }, { name: "동래구", station: "명장동" },
-          { name: "남구", station: "대연동" }, { name: "북구", station: "덕천동" }, { name: "해운대구", station: "좌동" },
-          { name: "사하구", station: "장림동" }, { name: "금정구", station: "청룡동" }, { name: "강서구", station: "대저동" },
-          { name: "연제구", station: "연산동" }, { name: "수영구", station: "수영동" }, { name: "사상구", station: "학장동" }, { name: "기장군", station: "기장읍" }
-        ]
-      },
-      "대구": {
-        warnArea: "대구",
-        list: [
-          { name: "중구", station: "수창동" }, { name: "동구", station: "신암동" }, { name: "서구", station: "이현동" },
-          { name: "남구", station: "대명동" }, { name: "북구", station: "태전동" }, { name: "수성구", station: "지산동" },
-          { name: "달서구", station: "호림동" }, { name: "달성군", station: "현풍읍" }, { name: "군위군", station: "군위읍" }
-        ]
-      },
-      "인천": {
-        warnArea: "인천",
-        list: [
-          { name: "중구", station: "신흥" }, { name: "동구", station: "송림" }, { name: "미추홀구", station: "숭의" },
-          { name: "연수구", station: "동춘" }, { name: "남동구", station: "구월동" }, { name: "부평구", station: "부평" },
-          { name: "계양구", station: "계산" }, { name: "서구", station: "연희" }, { name: "강화군", station: "강화" }
+          { name: "종로구", stations: ["종로구", "중구", "동대문구"] }, { name: "중구", stations: ["중구", "종로구", "용산구"] }, 
+          { name: "용산구", stations: ["용산구", "중구", "마포구"] }, { name: "성동구", stations: ["성동구", "광진구", "동대문구"] }, 
+          { name: "광진구", stations: ["광진구", "성동구", "중랑구"] }, { name: "동대문구", stations: ["동대문구", "성동구", "종로구"] },
+          { name: "중랑구", stations: ["중랑구", "동대문구", "노원구"] }, { name: "성북구", stations: ["성북구", "강북구", "종로구"] }, 
+          { name: "강북구", stations: ["강북구", "도봉구", "성북구"] }, { name: "도봉구", stations: ["도봉구", "노원구", "강북구"] }, 
+          { name: "노원구", stations: ["노원구", "도봉구", "중랑구"] }, { name: "은평구", stations: ["은평구", "서대문구", "마포구"] },
+          { name: "서대문구", stations: ["서대문구", "은평구", "마포구"] }, { name: "마포구", stations: ["마포구", "서대문구", "용산구"] }, 
+          { name: "양천구", stations: ["양천구", "강서구", "구로구"] }, { name: "강서구", stations: ["강서구", "양천구", "영등포구"] }, 
+          { name: "구로구", stations: ["구로구", "금천구", "양천구"] }, { name: "금천구", stations: ["금천구", "구로구", "관악구"] },
+          { name: "영등포구", stations: ["영등포구", "동작구", "양천구"] }, { name: "동작구", stations: ["동작구", "관악구", "영등포구"] }, 
+          { name: "관악구", stations: ["관악구", "동작구", "금천구"] }, { name: "서초구", stations: ["서초구", "강남구", "동작구"] }, 
+          { name: "강남구", stations: ["강남구", "서초구", "송파구"] }, { name: "송파구", stations: ["송파구", "강동구", "강남구"] }, 
+          { name: "강동구", stations: ["강동구", "송파구", "광진구"] }
         ]
       },
       "광주": {
         warnArea: "광주",
         list: [
-          { name: "북구", station: "운암동" }, { name: "동구", station: "서석동" }, { name: "서구", station: "농성동" }, 
-          { name: "남구", station: "주월동" }, { name: "광산구", station: "송정1동" }
+          { name: "북구", stations: ["운암동", "건국동", "두암동", "일곡동"] }, 
+          { name: "광산구", stations: ["송정1동", "하남동", "평동", "우산동"] },
+          { name: "서구", stations: ["농성동", "치평동", "유덕동"] }, 
+          { name: "남구", stations: ["주월동", "백운동", "서석동"] }, 
+          { name: "동구", stations: ["서석동", "지산동", "두암동"] }
+        ]
+      },
+      "부산": {
+        warnArea: "부산",
+        list: [
+          { name: "해운대구", stations: ["좌동", "기장읍", "수영동"] }, { name: "부산진구", stations: ["전포동", "연산동", "대연동"] },
+          { name: "북구", stations: ["덕천동", "학장동", "대저동"] }, { name: "사하구", stations: ["장림동", "대신동"] },
+          { name: "남구", stations: ["대연동", "수영동", "전포동"] }, { name: "동래구", stations: ["명장동", "연산동"] },
+          { name: "금정구", stations: ["청룡동", "명장동"] }, { name: "연제구", stations: ["연산동", "전포동"] },
+          { name: "수영구", stations: ["수영동", "대연동"] }, { name: "사상구", stations: ["학장동", "덕천동"] },
+          { name: "강서구", stations: ["대저동", "학장동"] }, { name: "기장군", stations: ["기장읍", "좌동"] },
+          { name: "중구", stations: ["광복동", "수정동", "대신동"] }, { name: "동구", stations: ["수정동", "전포동"] },
+          { name: "서구", stations: ["대신동", "광복동"] }, { name: "영도구", stations: ["태종대", "광복동"] }
+        ]
+      },
+      "대구": {
+        warnArea: "대구",
+        list: [
+          { name: "중구", stations: ["수창동", "대명동"] }, { name: "동구", stations: ["신암동", "지산동"] },
+          { name: "서구", stations: ["이현동", "태전동"] }, { name: "남구", stations: ["대명동", "수창동"] },
+          { name: "북구", stations: ["태전동", "신암동"] }, { name: "수성구", stations: ["지산동", "신암동"] },
+          { name: "달서구", stations: ["호림동", "이현동"] }, { name: "달성군", stations: ["현풍읍", "호림동"] }
+        ]
+      },
+      "인천": {
+        warnArea: "인천",
+        list: [
+          { name: "남동구", stations: ["구월동", "논현", "고잔"] }, { name: "연수구", stations: ["동춘", "송도"] },
+          { name: "부평구", stations: ["부평", "삼산"] }, { name: "계양구", stations: ["계산", "부평"] },
+          { name: "서구", stations: ["연희", "석남"] }, { name: "미추홀구", stations: ["숭의", "구월동"] },
+          { name: "중구", stations: ["신흥", "운서"] }, { name: "동구", stations: ["송림", "신흥"] },
+          { name: "강화군", stations: ["강화", "길상"] }
         ]
       },
       "대전": {
         warnArea: "대전",
         list: [
-          { name: "동구", station: "대동" }, { name: "중구", station: "문창동" }, { name: "서구", station: "둔산동" },
-          { name: "유성구", station: "구성동" }, { name: "대덕구", station: "읍내동" }
+          { name: "서구", stations: ["둔산동", "구성동"] }, { name: "유성구", stations: ["구성동", "노은동"] },
+          { name: "중구", stations: ["문창동", "대동"] }, { name: "동구", stations: ["대동", "문창동"] },
+          { name: "대덕구", stations: ["읍내동", "둔산동"] }
         ]
       },
       "울산": {
         warnArea: "울산",
         list: [
-          { name: "중구", station: "성남동" }, { name: "남구", station: "야음동" }, { name: "동구", station: "전하동" },
-          { name: "북구", station: "농소동" }, { name: "울주군", station: "덕신리" }
-        ]
-      },
-      "세종": {
-        warnArea: "세종",
-        list: [
-          { name: "세종특별자치시", station: "신흥동" }
+          { name: "남구", stations: ["야음동", "신정동", "삼산동"] }, { name: "중구", stations: ["성남동", "야음동"] },
+          { name: "동구", stations: ["전하동", "야음동"] }, { name: "북구", stations: ["농소동", "성남동"] },
+          { name: "울주군", stations: ["덕신리", "야음동"] }
         ]
       },
       "경기": {
         warnArea: "경기",
         list: [
-          { name: "수원시", station: "신풍동" }, { name: "성남시", station: "단대동" }, { name: "고양시", station: "식사동" },
-          { name: "용인시", station: "기흥" }, { name: "부천시", station: "내동" }, { name: "안산시", station: "원곡동" },
-          { name: "안양시", station: "안양6동" }, { name: "남양주시", station: "금곡동" }, { name: "화성시", station: "우정읍" },
-          { name: "평택시", station: "비전동" }, { name: "의정부시", station: "의정부동" }, { name: "파주시", station: "금촌동" },
-          { name: "시흥시", station: "정왕동" }, { name: "김포시", station: "고촌읍" }, { name: "광명시", station: "철산동" },
-          { name: "광주시", station: "경안동" }, { name: "군포시", station: "당동" }, { name: "하남시", station: "천현동" },
-          { name: "오산시", station: "오산동" }, { name: "이천시", station: "창전동" }, { name: "안성시", station: "봉산동" },
-          { name: "의왕시", station: "고천동" }, { name: "양주시", station: "백석읍" }, { name: "여주시", station: "여흥동" },
-          { name: "양평군", station: "양평읍" }, { name: "동두천시", station: "보산동" }, { name: "과천시", station: "중앙동" }
+          { name: "수원시", stations: ["신풍동", "영통동", "인계동"] }, { name: "성남시", stations: ["단대동", "정자동", "운중동"] },
+          { name: "고양시", stations: ["식사동", "행신동"] }, { name: "용인시", stations: ["기흥", "수지", "김량장동"] },
+          { name: "부천시", stations: ["내동", "소사본동"] }, { name: "안산시", stations: ["원곡동", "본오동"] },
+          { name: "안양시", stations: ["안양6동", "부림동"] }, { name: "남양주시", stations: ["금곡동", "별내동"] },
+          { name: "화성시", stations: ["우정읍", "동탄동"] }, { name: "평택시", stations: ["비전동", "안중읍"] },
+          { name: "의정부시", stations: ["의정부동", "가능동"] }, { name: "파주시", stations: ["금촌동", "운정동"] },
+          { name: "시흥시", stations: ["정왕동", "신천동"] }, { name: "김포시", stations: ["고촌읍", "사우동"] }
         ]
       },
       "강원": {
         warnArea: "강원",
         list: [
-          { name: "춘천시", station: "석사동" }, { name: "원주시", station: "명륜동" }, { name: "강릉시", station: "옥천동" },
-          { name: "동해시", station: "천곡동" }, { name: "속초시", station: "동명동" }, { name: "홍천군", station: "홍천읍" },
-          { name: "삼척시", station: "남양동" }
+          { name: "춘천시", stations: ["석사동", "중앙로"] }, { name: "원주시", stations: ["명륜동", "반곡동"] },
+          { name: "강릉시", stations: ["옥천동"] }, { name: "동해시", stations: ["천곡동"] }, { name: "속초시", stations: ["동명동"] }
         ]
       },
       "충북": {
         warnArea: "충청북도",
         list: [
-          { name: "청주시", station: "사천동" }, { name: "충주시", station: "호암동" }, { name: "제천시", station: "장락동" },
-          { name: "음성군", station: "음성읍" }, { name: "진천군", station: "진천읍" }
+          { name: "청주시", stations: ["사천동", "복대동", "용암동"] }, { name: "충주시", stations: ["호암동", "칠금동"] },
+          { name: "제천시", stations: ["장락동", "청전동"] }
         ]
       },
       "충남": {
         warnArea: "충청남도",
         list: [
-          { name: "천안시", station: "성황동" }, { name: "공주시", station: "의당면" }, { name: "보령시", station: "대천2동" },
-          { name: "아산시", station: "모종동" }, { name: "서산시", station: "동문동" }, { name: "논산시", station: "취암동" },
-          { name: "당진시", station: "당진시청" }
+          { name: "천안시", stations: ["성황동", "백석동", "신방동"] }, { name: "아산시", stations: ["모종동", "배방읍"] },
+          { name: "서산시", stations: ["동문동", "독곶리"] }, { name: "당진시", stations: ["당진시청", "송악읍"] }
         ]
       },
       "전북": {
         warnArea: "전북특별자치도",
         list: [
-          { name: "전주시", station: "노송동" }, { name: "군산시", station: "신풍동" }, { name: "익산시", station: "남중동" },
-          { name: "정읍시", station: "연지동" }, { name: "남원시", station: "죽항동" }, { name: "김제시", station: "요촌동" }
+          { name: "전주시", stations: ["노송동", "삼천동", "팔복동"] }, { name: "군산시", stations: ["신풍동", "소룡동"] },
+          { name: "익산시", stations: ["남중동", "모현동"] }
         ]
       },
       "전남": {
         warnArea: "전라남도",
         list: [
-          { name: "목포시", station: "용당동" }, { name: "여수시", station: "여천동" }, { name: "순천시", station: "장천동" },
-          { name: "나주시", station: "빛가람동" }, { name: "광양시", station: "중동" }, { name: "무안군", station: "무안읍" }
+          { name: "목포시", stations: ["용당동", "부흥동"] }, { name: "여수시", stations: ["여천동", "문수동"] },
+          { name: "순천시", stations: ["장천동", "연향동"] }, { name: "광양시", stations: ["중동", "태인동"] }
         ]
       },
       "경북": {
         warnArea: "경상북도",
         list: [
-          { name: "포항시", station: "대도동" }, { name: "경주시", station: "성건동" }, { name: "김천시", station: "신음동" },
-          { name: "안동시", station: "명륜동" }, { name: "구미시", station: "원평동" }, { name: "영주시", station: "휴천동" },
-          { name: "영천시", station: "문외동" }, { name: "경산시", station: "중방동" }
+          { name: "포항시", stations: ["대도동", "장량동", "오천읍"] }, { name: "구미시", stations: ["원평동", "4공단"] },
+          { name: "경주시", stations: ["성건동"] }, { name: "경산시", stations: ["중방동"] }
         ]
       },
       "경남": {
         warnArea: "경상남도",
         list: [
-          { name: "창원시", station: "명서동" }, { name: "진주시", station: "상대동" }, { name: "통영시", station: "무전동" },
-          { name: "사천시", station: "동금동" }, { name: "김해시", station: "동상동" }, { name: "밀양시", station: "내일동" },
-          { name: "거제시", station: "아주동" }, { name: "양산시", station: "북부동" }
+          { name: "창원시", stations: ["명서동", "사파동", "회원동", "웅남동"] }, { name: "진주시", stations: ["상대동", "대안동"] },
+          { name: "김해시", stations: ["동상동", "장유동"] }, { name: "양산시", stations: ["북부동", "삼호동"] }
         ]
       },
       "제주": {
         warnArea: "제주",
         list: [
-          { name: "제주시", station: "이도동" }, { name: "서귀포시", station: "동홍동" }
+          { name: "제주시", stations: ["이도동", "연동", "건입동"] }, { name: "서귀포시", stations: ["동홍동", "성산읍", "대정읍"] }
         ]
       }
     };
 
     const LS = {
-      settings: "outdoor_activity_settings_v3",
-      history: "outdoor_activity_history_v3"
+      settings: "outdoor_activity_settings_final",
+      history: "outdoor_activity_history_final"
     };
 
     const $ = (id) => document.getElementById(id);
@@ -409,60 +393,37 @@
       const sigunguSelect = $("sigunguSelect");
 
       sidoSelect.innerHTML = Object.keys(REGION_DATA).map(sido => `<option value="${sido}">${sido}</option>`).join("");
-      sidoSelect.innerHTML += `<option value="custom">직접 입력 (기타 지역)</option>`;
-
-      sidoSelect.addEventListener("change", () => {
-        updateSigungu();
-        toggleCustom();
-      });
-      sigunguSelect.addEventListener("change", toggleCustom);
+      sidoSelect.addEventListener("change", updateSigungu);
 
       const settings = loadSettings();
       sidoSelect.value = settings.sido || "서울";
       updateSigungu();
-      sigunguSelect.value = settings.sigungu || "종로구";
-
-      $("customName").value = settings.customName || "";
-      $("customStation").value = settings.customStation || "";
-      $("customWarnArea").value = settings.customWarnArea || "";
       
-      toggleCustom();
+      // 저장된 시군구가 새로운 시도 목록에 존재하는지 확인 후 반영
+      const options = Array.from(sigunguSelect.options).map(o => o.value);
+      if(options.includes(settings.sigungu)) {
+        sigunguSelect.value = settings.sigungu;
+      }
     }
 
     function updateSigungu() {
       const sido = $("sidoSelect").value;
       const sigunguSelect = $("sigunguSelect");
-
-      if (sido === "custom") {
-        sigunguSelect.innerHTML = `<option value="custom">직접 입력</option>`;
-      } else {
-        const list = REGION_DATA[sido].list;
-        sigunguSelect.innerHTML = list.map(item => `<option value="${item.name}">${item.name}</option>`).join("");
-        sigunguSelect.innerHTML += `<option value="custom">목록에 없음 (직접 입력)</option>`;
-      }
-    }
-
-    function toggleCustom() {
-      const isCustom = $("sidoSelect").value === "custom" || $("sigunguSelect").value === "custom";
-      $("customBox").classList.toggle("hidden", !isCustom);
+      const list = REGION_DATA[sido].list;
+      sigunguSelect.innerHTML = list.map(item => `<option value="${item.name}">${item.name}</option>`).join("");
     }
 
     function getSelectedRegion() {
       const settings = loadSettings();
-      if (settings.sido === "custom" || settings.sigungu === "custom") {
-        return {
-          name: settings.customName || "직접 입력 지역",
-          stationName: settings.customStation || "",
-          warnArea: settings.customWarnArea || ""
-        };
-      }
+      const sido = settings.sido || "서울";
+      const sigungu = settings.sigungu || "종로구";
       
-      const sidoData = REGION_DATA[settings.sido];
-      const sigunguData = sidoData.list.find(x => x.name === settings.sigungu) || sidoData.list[0];
+      const sidoData = REGION_DATA[sido];
+      const sigunguData = sidoData.list.find(x => x.name === sigungu) || sidoData.list[0];
 
       return {
-        name: `${settings.sido} ${sigunguData.name}`,
-        stationName: sigunguData.station,
+        name: `${sido} ${sigunguData.name}`,
+        stations: sigunguData.stations, // 배열 형태로 반환
         warnArea: sidoData.warnArea,
         sigunguName: sigunguData.name
       };
@@ -498,7 +459,8 @@
       return { level: "good", label: "특보 없음", reason: "폭염특보 없음" };
     }
 
-    async function fetchAirKorea(serviceKey, stationName) {
+    // 단일 측정소 조회 함수
+    async function fetchAirKoreaSingle(serviceKey, stationName) {
       const queryParams = new URLSearchParams({
         returnType: "json",
         numOfRows: "24",
@@ -510,26 +472,47 @@
       const url = `${AIRKOREA_URL}?serviceKey=${serviceKey}&${queryParams.toString()}`;
 
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`네트워크 오류 (${res.status})`);
+      if (!res.ok) throw new Error(`네트워크 오류`);
       
       const text = await res.text();
       let data;
-      try { data = JSON.parse(text); } 
-      catch (e) { throw new Error(`API 인증 또는 파싱 오류`); }
+      try { data = JSON.parse(text); } catch (e) { throw new Error(`파싱 오류`); }
 
       const header = data?.response?.header;
-      if (header && header.resultCode !== "00") throw new Error(`서버 오류: ${header.resultMsg}`);
+      if (header && header.resultCode !== "00") throw new Error(`서버 오류`);
 
       const items = data?.response?.body?.items || [];
-      if (!items.length) throw new Error(`'${stationName}' 측정소 데이터 없음. 점검 중이거나 잘못된 이름입니다.`);
+      if (!items.length) throw new Error(`데이터 없음`);
 
       const item = items.find(x => x.pm10Value && x.pm10Value !== '-' && x.pm25Value && x.pm25Value !== '-') || items[0];
+      
+      // 데이터가 비어있는 경우(점검 중) 에러 처리
+      if(!item.pm10Value || item.pm10Value === '-') throw new Error("데이터 점검 중");
+
       return {
         pm10: item.pm10Value,
         pm25: item.pm25Value,
         dataTime: item.dataTime,
-        stationName
+        stationName: stationName
       };
+    }
+
+    // [핵심 기능] 여러 측정소를 순회하며 응답할 때까지 재시도하는 무중단 조회 함수
+    async function fetchAirKoreaFallback(serviceKey, stations) {
+      let lastErrorMsg = "";
+      
+      for (let i = 0; i < stations.length; i++) {
+        try {
+          const result = await fetchAirKoreaSingle(serviceKey, stations[i]);
+          return result; // 성공하면 즉시 결과 반환 후 종료
+        } catch (err) {
+          console.warn(`[대체 동작] ${stations[i]} 측정소 응답 없음. 다음 측정소를 시도합니다.`);
+          lastErrorMsg = err.message;
+        }
+      }
+      
+      // 등록된 모든 측정소가 응답하지 않을 경우에만 최종 에러 발생
+      throw new Error(`모든 인접 측정소 조회 실패`);
     }
 
     async function fetchKmaHeatWarning(serviceKey, region) {
@@ -548,15 +531,14 @@
       const url = `${KMA_WARN_URL}?serviceKey=${serviceKey}&${queryParams.toString()}`;
 
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`기상청 오류 (${res.status})`);
+      if (!res.ok) throw new Error(`기상청 오류`);
       
       const text = await res.text();
       let data;
-      try { data = JSON.parse(text); } 
-      catch (e) { throw new Error("기상청 응답 오류"); }
+      try { data = JSON.parse(text); } catch (e) { throw new Error("기상청 파싱 오류"); }
 
       const header = data?.response?.header;
-      if (header && header.resultCode !== "00") throw new Error(`기상청 서버 오류: ${header.resultMsg}`);
+      if (header && header.resultCode !== "00") throw new Error(`기상청 서버 오류`);
 
       const items = data?.response?.body?.items?.item || [];
       const list = Array.isArray(items) ? items : [items].filter(Boolean);
@@ -613,7 +595,10 @@
       $("pm10").textContent = `${air.pm10}㎍/㎥`;
       $("pm25").textContent = `${air.pm25}㎍/㎥`;
       $("heatWarning").textContent = heat.label;
-      $("regionLabel").textContent = region.name;
+      
+      // 어떤 대체 측정소에서 데이터를 가져왔는지 화면에 투명하게 표시
+      $("regionLabel").textContent = `${region.name} (${air.stationName} 기준)`;
+      
       $("lastUpdated").textContent = `최종 갱신: ${ymdhm()}`;
       $("reasons").innerHTML = result.reasons.map(r => `<div class="reason">${r}</div>`).join("");
     }
@@ -625,14 +610,14 @@
       $("statusIcon").textContent = "?";
       $("statusTitle").textContent = "조회 실패";
       
-      // 친절한 에러 해결 가이드 표시
       $("reasons").innerHTML = `
-        <div class="reason" style="color:var(--red); font-size:22px;">해당 측정소가 점검 중이거나 응답이 없습니다.</div>
+        <div class="reason" style="color:var(--red); font-size:22px;">해당 구역의 모든 측정소가 응답하지 않습니다.</div>
         <div class="reason" style="font-size:16px; font-weight:normal; background:#fff; padding:16px;">
-          💡 <b>해결 방법</b><br>우측 설정에서 시/군/구를 <b>[직접 입력]</b>으로 바꾼 뒤,<br><b>[📍 지도 열기]</b> 버튼을 눌러 지도에 표시된 인근의 다른 측정소명(예: 건국동, 우산동 등)을 찾아 입력해보세요.
+          💡 <b>해결 방법</b><br>일시적인 장애일 수 있으니 잠시 후 <b>[새로고침]</b> 버튼을 누르시거나,<br>우측 설정에서 <b>인근의 다른 시/군/구</b>(예: 북구 대신 서구)를 선택하여 조회해보세요.
         </div>
       `;
       $("lastUpdated").textContent = `조회 오류`;
+      $("regionLabel").textContent = "-";
     }
 
     function recordHistory(result, air, heat, region) {
@@ -672,18 +657,17 @@
 
     async function checkNow() {
       const region = getSelectedRegion();
-      if (!region.stationName) throw new Error("측정소명이 입력되지 않았습니다.");
 
       $("checkBtn").textContent = "조회 중...";
       $("checkBtn").disabled = true;
       try {
-        const air = await fetchAirKorea(SERVICE_KEY, region.stationName);
+        // Fallback 로직이 적용된 함수 호출 (여러 측정소를 순회)
+        const air = await fetchAirKoreaFallback(SERVICE_KEY, region.stations);
         const dust = classifyDust(air.pm10, air.pm25);
         let heat;
         try { 
           heat = await fetchKmaHeatWarning(SERVICE_KEY, region); 
         } catch (e) { 
-          console.warn("기상청 API 에러:", e);
           heat = { level: "good", label: "확인 실패", reason: "폭염특보 확인 실패" }; 
         }
         
@@ -701,13 +685,8 @@
     function saveForm() {
       saveSettings({
         sido: $("sidoSelect").value,
-        sigungu: $("sigunguSelect").value,
-        customName: $("customName").value.trim(),
-        customStation: $("customStation").value.trim(),
-        customWarnArea: $("customWarnArea").value.trim()
+        sigungu: $("sigunguSelect").value
       });
-      const region = getSelectedRegion();
-      $("regionLabel").textContent = region.name;
       checkNow().catch(renderError);
     }
 
