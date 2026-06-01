@@ -179,13 +179,14 @@
   <script>
     /*
       사용 전 확인 사항
-      1. 공공데이터포털 API 인증키가 코드 내부에 반영되어 있습니다.
+      1. 공공데이터포털 API 인증키(인코딩키)가 반드시 아래 SERVICE_KEY에 입력되어 있어야 합니다.
       2. 일반 사용자는 지역만 선택하면 됩니다.
       3. 지역 목록의 stationName은 에어코리아 측정소명과 정확히 맞아야 합니다.
-         우리 학교 근처 측정소명으로 수정해 사용하세요.
     */
 
+    // 주의: 공공데이터포털에서 발급받은 실제 "인코딩(Encoding)" 키를 사용하세요.
     const SERVICE_KEY = "9e644bbc9679873e697c8e70127dc6c6d1073968698887cef1fc34aba8e0a36c";
+    
     const AIRKOREA_URL = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty";
     const KMA_WARN_URL = "https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList";
 
@@ -307,21 +308,47 @@
     }
 
     async function fetchAirKorea(serviceKey, stationName) {
-      const url = new URL(AIRKOREA_URL);
-      url.searchParams.set("serviceKey", serviceKey);
-      url.searchParams.set("returnType", "json");
-      url.searchParams.set("numOfRows", "24");
-      url.searchParams.set("pageNo", "1");
-      url.searchParams.set("stationName", stationName);
-      url.searchParams.set("dataTerm", "DAILY");
-      url.searchParams.set("ver", "1.0");
+      // URLSearchParams를 쓰면 이미 인코딩된 serviceKey가 이중인코딩되어 
+      // SERVICE_KEY_IS_NOT_REGISTERED_ERROR를 유발하므로 URL 조립을 분리합니다.
+      const queryParams = new URLSearchParams({
+        returnType: "json",
+        numOfRows: "24",
+        pageNo: "1",
+        stationName: stationName,
+        dataTerm: "DAILY",
+        ver: "1.0"
+      });
+      const url = `${AIRKOREA_URL}?serviceKey=${serviceKey}&${queryParams.toString()}`;
 
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error("에어코리아 API 응답 오류");
-      const data = await res.json();
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`[에어코리아] 네트워크 오류 발생 (상태 코드: ${res.status})`);
+      
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        // XML 형태로 에러가 반환되는 경우(인증 오류 등)
+        if (text.includes("<returnAuthMsg>")) {
+          const match = text.match(/<returnAuthMsg>(.*?)<\/returnAuthMsg>/);
+          const msg = match ? match[1] : "서비스 키를 확인하세요.";
+          throw new Error(`[에어코리아 인증 오류] ${msg}`);
+        }
+        throw new Error("[에어코리아] 서버 응답이 올바르지 않습니다 (JSON 파싱 실패).");
+      }
+
+      // JSON 내부에 에러 코드가 있는 경우 (예: resultCode !== "00")
+      const header = data?.response?.header;
+      if (header && header.resultCode !== "00") {
+        throw new Error(`[에어코리아 오류] ${header.resultMsg} (코드: ${header.resultCode})`);
+      }
+
       const items = data?.response?.body?.items || [];
-      if (!items.length) throw new Error("에어코리아 측정소 데이터를 찾지 못했습니다. 측정소명을 확인하세요.");
-      const item = items.find(x => x.pm10Value && x.pm25Value) || items[0];
+      if (!items.length) {
+        throw new Error(`'${stationName}' 에어코리아 측정소 데이터를 찾지 못했습니다. 측정소명을 정확히 입력했는지 확인하세요.`);
+      }
+
+      const item = items.find(x => x.pm10Value && x.pm10Value !== '-' && x.pm25Value && x.pm25Value !== '-') || items[0];
       return {
         pm10: item.pm10Value,
         pm25: item.pm25Value,
@@ -333,17 +360,37 @@
     async function fetchKmaHeatWarning(serviceKey, warnArea) {
       const now = new Date();
       const from = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7);
-      const url = new URL(KMA_WARN_URL);
-      url.searchParams.set("serviceKey", serviceKey);
-      url.searchParams.set("pageNo", "1");
-      url.searchParams.set("numOfRows", "100");
-      url.searchParams.set("dataType", "JSON");
-      url.searchParams.set("fromTmFc", kmaTime(from));
-      url.searchParams.set("toTmFc", kmaTime(now));
+      
+      const queryParams = new URLSearchParams({
+        pageNo: "1",
+        numOfRows: "100",
+        dataType: "JSON",
+        fromTmFc: kmaTime(from),
+        toTmFc: kmaTime(now)
+      });
+      const url = `${KMA_WARN_URL}?serviceKey=${serviceKey}&${queryParams.toString()}`;
 
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error("기상청 특보 API 응답 오류");
-      const data = await res.json();
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`[기상청] 네트워크 오류 발생 (상태 코드: ${res.status})`);
+      
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        if (text.includes("<returnAuthMsg>")) {
+          const match = text.match(/<returnAuthMsg>(.*?)<\/returnAuthMsg>/);
+          const msg = match ? match[1] : "서비스 키를 확인하세요.";
+          throw new Error(`[기상청 인증 오류] ${msg}`);
+        }
+        throw new Error("[기상청] 서버 응답이 올바르지 않습니다 (JSON 파싱 실패).");
+      }
+
+      const header = data?.response?.header;
+      if (header && header.resultCode !== "00") {
+        throw new Error(`[기상청 오류] ${header.resultMsg} (코드: ${header.resultCode})`);
+      }
+
       const items = data?.response?.body?.items?.item || [];
       const list = Array.isArray(items) ? items : [items].filter(Boolean);
 
@@ -354,7 +401,6 @@
       if (!filtered.length) return { raw: "", label: "없음", level: "good", reason: "폭염특보 없음" };
 
       const joined = filtered.join("\n");
-      // 최근 목록에 해제가 포함될 수 있으므로, 해제만 있는 경우 없음으로 처리합니다.
       if (/해제/.test(joined) && !/폭염.*(주의보|경보)|주의보.*폭염|경보.*폭염/.test(joined.replace(/해제/g, ""))) {
         return { raw: joined, label: "없음", level: "good", reason: "폭염특보 없음" };
       }
@@ -409,12 +455,13 @@
     }
 
     function renderError(err) {
+      console.error(err);
       const card = $("statusCard");
       card.className = "card statusCard unknown";
       $("statusIcon").textContent = "?";
       $("statusTitle").textContent = "조회 실패";
       $("statusDesc").textContent = err.message || "API 조회 중 오류가 발생했습니다.";
-      $("reasons").innerHTML = `<div class="reason">측정소명, 지역명, API 활용신청 상태를 확인하세요.</div>`;
+      $("reasons").innerHTML = `<div class="reason" style="color:var(--red);">에러 원인을 확인 후 수정하거나 다시 시도해주세요.</div>`;
       $("lastUpdated").textContent = `오류: ${ymdhm()}`;
     }
 
@@ -464,7 +511,7 @@
     async function checkNow() {
       const region = getSelectedRegion();
       const serviceKey = SERVICE_KEY;
-      if (!region.stationName) throw new Error("에어코리아 측정소명을 입력하세요.");
+      if (!region.stationName) throw new Error("설정에서 에어코리아 측정소명을 입력하세요.");
 
       $("checkBtn").textContent = "조회 중...";
       $("checkBtn").disabled = true;
@@ -475,8 +522,8 @@
         try {
           heat = await fetchKmaHeatWarning(serviceKey, region.warnArea);
         } catch (e) {
-          // 기상특보 API가 승인 전이어도 미세먼지 판단은 가능하도록 처리
           heat = { level: "good", label: "확인 실패", reason: "폭염특보 확인 실패", raw: e.message };
+          console.warn(e);
         }
         const result = decide({ dust, heat, air, region });
         renderResult(result, air, heat, region);
