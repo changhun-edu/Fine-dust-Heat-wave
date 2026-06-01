@@ -4,115 +4,1117 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>오늘 야외활동 가능?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f6f7fb;
-      --card: #ffffff;
-      --text: #172033;
-      --muted: #667085;
-      --line: #e5e7eb;
-      --green: #16a34a;
-      --green-bg: #dcfce7;
-      --yellow: #d97706;
-      --yellow-bg: #fef3c7;
-      --red: #dc2626;
-      --red-bg: #fee2e2;
-      --blue: #2563eb;
-      --blue-bg: #dbeafe;
-      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      --radius: 22px;
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --border:rgba(255,255,255,0.08);
+      --good:#00d084; --good-bg:rgba(0,208,132,0.12);
+      --caution:#ffb800; --caution-bg:rgba(255,184,0,0.12);
+      --bad:#ff4444; --bad-bg:rgba(255,68,68,0.12);
+      --dust:#a78bfa; --dust-bg:rgba(167,139,250,0.14);
+      --heat:#fb923c; --heat-bg:rgba(251,146,60,0.14);
+      --text:#f0f2f8; --muted:#8b92a8; --r:20px;
     }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:22px 26px 34px;}
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(180deg, #edf4ff 0%, var(--bg) 240px);
-      color: var(--text);
+    /* ── HEADER ── */
+    .header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;gap:14px;flex-wrap:wrap;}
+    .header h1{font-size:clamp(22px,2.8vw,38px);font-weight:900;letter-spacing:-0.04em;color:#fff;}
+    .pills{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
+    .pill{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:8px 16px;font-size:clamp(12px,1.2vw,15px);font-weight:700;color:var(--muted);white-space:nowrap;}
+    .pill span{color:var(--text);}
+    .pill.loc-pill{cursor:pointer;transition:border-color .2s;}
+    .pill.loc-pill:hover{border-color:var(--good);color:var(--good);}
+
+    /* ── MAIN GRID ── */
+    .main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    @media(max-width:820px){.main-grid{grid-template-columns:1fr;}}
+
+    /* ── STATUS CARD ── */
+    .status-card{border-radius:var(--r);padding:30px 26px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:360px;border:2px solid transparent;transition:all .4s;}
+    .status-card.good   {background:var(--good-bg);   border-color:var(--good);}
+    .status-card.caution{background:var(--caution-bg);border-color:var(--caution);}
+    .status-card.bad    {background:var(--bad-bg);    border-color:var(--bad);}
+    .status-card.loading{background:var(--surface);   border-color:var(--border);}
+    .s-emoji{font-size:clamp(60px,7.5vw,105px);line-height:1;animation:fl 3s ease-in-out infinite;}
+    @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .s-label{font-size:clamp(48px,6.5vw,95px);font-weight:900;letter-spacing:-0.06em;line-height:1.05;margin-top:16px;text-align:center;}
+    .status-card.good    .s-label{color:var(--good);}
+    .status-card.caution .s-label{color:var(--caution);}
+    .status-card.bad     .s-label{color:var(--bad);}
+    .status-card.loading .s-label{color:var(--muted);}
+    .s-desc{margin-top:12px;font-size:clamp(15px,1.8vw,24px);font-weight:700;color:rgba(255,255,255,.65);text-align:center;line-height:1.4;}
+    .warn-badge{margin-top:12px;border-radius:10px;padding:7px 16px;font-size:clamp(12px,1.3vw,16px);font-weight:900;text-align:center;max-width:380px;background:var(--bad);color:#fff;}
+
+    /* ── DUAL INDICATORS ── */
+    .dual-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px 18px;display:flex;flex-direction:column;gap:12px;min-height:360px;justify-content:center;}
+    .dual-card h2{font-size:clamp(12px,1.3vw,16px);font-weight:900;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px;}
+    .indicator{border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;flex:1;}
+    .indicator.dust{background:var(--dust-bg);border:1.5px solid var(--dust);}
+    .indicator.heat{background:var(--heat-bg);border:1.5px solid var(--heat);}
+    .ind-icon{font-size:clamp(38px,5vw,62px);flex-shrink:0;line-height:1;}
+    .ind-body{flex:1;}
+    .ind-title{font-size:clamp(12px,1.3vw,17px);font-weight:900;letter-spacing:.02em;}
+    .indicator.dust .ind-title{color:var(--dust);}
+    .indicator.heat .ind-title{color:var(--heat);}
+    .ind-val{font-size:clamp(28px,4vw,55px);font-weight:900;letter-spacing:-0.04em;line-height:1.05;margin-top:3px;color:#fff;}
+    .ind-sub{font-size:clamp(11px,1.1vw,14px);font-weight:700;margin-top:2px;opacity:.75;}
+    .indicator.dust .ind-sub{color:var(--dust);}
+    .indicator.heat .ind-sub{color:var(--heat);}
+    .badge{padding:6px 14px;border-radius:999px;font-size:clamp(12px,1.2vw,16px);font-weight:900;white-space:nowrap;flex-shrink:0;}
+    .bg-good   {background:var(--good);   color:#000;}
+    .bg-caution{background:var(--caution);color:#000;}
+    .bg-bad    {background:var(--bad);    color:#fff;}
+    .bg-muted  {background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+
+    /* ── METRICS ── */
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px;}
+    @media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr);}}
+    .mc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 12px;text-align:center;}
+    .mk{font-size:clamp(10px,1vw,13px);font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+    .mv{font-size:clamp(20px,2.6vw,36px);font-weight:900;letter-spacing:-0.04em;margin-top:4px;color:#fff;}
+    .mu{font-size:clamp(10px,.9vw,12px);color:var(--muted);font-weight:700;margin-top:1px;}
+
+    /* ── CALENDAR ── */
+    .cal-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 18px 24px;}
+    .cal-head{display:flex;align-items:center;gap:9px;margin-bottom:16px;flex-wrap:wrap;}
+    .cal-head h2{font-size:clamp(13px,1.6vw,19px);font-weight:900;}
+    .legend{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap;}
+    .li{display:flex;align-items:center;gap:4px;font-size:clamp(10px,.95vw,12px);font-weight:700;color:var(--muted);}
+    .ld{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:9px;}
+    @media(max-width:600px){.cal-grid{grid-template-columns:repeat(4,1fr);}}
+    .cd{background:var(--surface2);border:1.5px solid var(--border);border-radius:13px;padding:13px 7px;text-align:center;display:flex;flex-direction:column;gap:5px;position:relative;}
+    .cd.today{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.04);}
+    .cd.tmr  {border-color:var(--caution);background:rgba(255,184,0,.07);}
+    .ctag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);border-radius:999px;font-size:clamp(8px,.85vw,10px);font-weight:900;padding:2px 8px;white-space:nowrap;}
+    .ctag-today{background:var(--good);   color:#000;}
+    .ctag-tmr  {background:var(--caution);color:#000;}
+    .cdow {font-size:clamp(9px,.9vw,12px);font-weight:800;color:var(--muted);letter-spacing:.04em;}
+    .cdate{font-size:clamp(17px,2vw,28px);font-weight:900;color:#fff;line-height:1;}
+    .cd.today .cdate{color:var(--good);}
+    .cd.tmr   .cdate{color:var(--caution);}
+    .cicon{font-size:clamp(18px,2.2vw,29px);line-height:1;}
+    .cheat{display:flex;align-items:center;justify-content:center;gap:3px;font-size:clamp(10px,.95vw,14px);font-weight:900;color:var(--heat);}
+    .chdot{width:6px;height:6px;border-radius:50%;background:var(--heat);opacity:.7;}
+    .cdust{display:flex;align-items:center;justify-content:center;gap:3px;font-size:clamp(9px,.85vw,12px);font-weight:800;}
+    .cddot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+    .ctmrmsg{font-size:clamp(8px,.8vw,10px);font-weight:800;color:var(--caution);line-height:1.3;margin-top:1px;}
+
+    /* ── LOCATION MODAL ── */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:32px 28px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+    .modal h2{font-size:clamp(18px,2.2vw,26px);font-weight:900;margin-bottom:6px;}
+    .modal p{color:var(--muted);font-size:clamp(13px,1.3vw,15px);font-weight:700;margin-bottom:22px;line-height:1.6;}
+    .sel-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+    @media(max-width:440px){.sel-row{grid-template-columns:1fr 1fr;}}
+    .sel-row select{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 10px;color:var(--text);font-family:inherit;font-size:clamp(13px,1.3vw,15px);font-weight:700;width:100%;}
+    .sel-row select option{background:#1a1d27;}
+    .modal-preview{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:clamp(13px,1.3vw,15px);font-weight:700;color:var(--good);margin-bottom:18px;min-height:44px;}
+    .modal-btns{display:flex;gap:10px;}
+    .mbtn{flex:1;border:0;border-radius:12px;padding:13px;font-family:inherit;font-size:clamp(13px,1.4vw,16px);font-weight:900;cursor:pointer;transition:opacity .2s;}
+    .mbtn:hover{opacity:.85;}
+    .mbtn.confirm{background:var(--good);color:#000;}
+    .mbtn.cancel {background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+
+    /* ── MISC ── */
+    .spin{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:5px;}
+    @keyframes sp{to{transform:rotate(360deg)}}
+    .errbox{background:rgba(255,68,68,.1);border:1px solid var(--bad);border-radius:11px;padding:11px 14px;color:var(--bad);font-weight:700;font-size:13px;margin-top:9px;white-space:pre-wrap;}
+
+    /* ── GUIDE SECTION ── */
+    .guide { margin-top: 28px; display: flex; flex-direction: column; gap: 20px; }
+    .guide-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px 22px; }
+    .guide-block h3 { font-size: clamp(14px,1.6vw,20px); font-weight: 900; margin-bottom: 16px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+
+    /* 기준표 */
+    .guide-table { width: 100%; border-collapse: collapse; font-size: clamp(11px,1.1vw,14px); }
+    .guide-table th { background: var(--surface2); color: var(--muted); font-weight: 800; padding: 10px 12px; text-align: center; border: 1px solid var(--border); letter-spacing: .03em; }
+    .guide-table td { padding: 10px 12px; text-align: center; border: 1px solid var(--border); font-weight: 700; }
+    .guide-table tr:hover td { background: rgba(255,255,255,.03); }
+    .td-good    { color: var(--good); }
+    .td-caution { color: var(--caution); }
+    .td-bad     { color: var(--bad); }
+
+    /* 행동요령 카드 */
+    .action-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    @media(max-width:700px){ .action-grid{ grid-template-columns:1fr; } }
+    .action-card { border-radius: 16px; padding: 18px 16px; }
+    .action-card.good    { background: var(--good-bg);    border: 1.5px solid var(--good); }
+    .action-card.caution { background: var(--caution-bg); border: 1.5px solid var(--caution); }
+    .action-card.bad     { background: var(--bad-bg);     border: 1.5px solid var(--bad); }
+    .action-title { font-size: clamp(18px,2.2vw,28px); font-weight: 900; letter-spacing: -0.04em; margin-bottom: 10px; }
+    .action-card.good    .action-title { color: var(--good); }
+    .action-card.caution .action-title { color: var(--caution); }
+    .action-card.bad     .action-title { color: var(--bad); }
+    .action-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .action-list li { font-size: clamp(12px,1.2vw,15px); font-weight: 700; color: rgba(255,255,255,.82); padding-left: 18px; position: relative; line-height: 1.5; }
+    .action-list li::before { content: '•'; position: absolute; left: 4px; color: inherit; opacity: .7; }
+
+    /* 기저질환 안내 */
+    .condition-box { background: rgba(167,139,250,.1); border: 1.5px solid var(--dust); border-radius: 14px; padding: 18px 20px; }
+    .condition-box h4 { color: var(--dust); font-size: clamp(13px,1.4vw,17px); font-weight: 900; margin-bottom: 10px; }
+    .condition-box p  { font-size: clamp(12px,1.2vw,15px); color: rgba(255,255,255,.75); font-weight: 700; line-height: 1.7; }
+    .condition-box strong { color: var(--dust); }
+
+    /* 학생용 한마디 */
+    .student-msg { background: linear-gradient(135deg, rgba(0,208,132,.1), rgba(37,99,235,.08)); border: 1.5px solid rgba(0,208,132,.3); border-radius: 16px; padding: 20px 22px; font-size: clamp(14px,1.5vw,18px); font-weight: 800; color: rgba(255,255,255,.85); line-height: 1.8; }
+    .student-msg .em { color: var(--good); font-weight: 900; }
+    .student-msg .em-w { color: var(--caution); font-weight: 900; }
+    .student-msg .em-b { color: var(--bad); font-weight: 900; }
+
+    @media(max-width:700px){ .criteria-grid{ grid-template-columns:1fr !important; } }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div>
+    <h1>🏫 오늘 야외활동 가능할까?</h1>
+  </div>
+  <div class="pills">
+    <div class="pill loc-pill" id="locPill" onclick="openModal()" title="지역 변경">📍 <span id="locSpan">지역 설정 필요</span> ✏️</div>
+    <div class="pill">⏰ <span id="clk">--:--</span></div>
+    <div class="pill">📅 <span id="dt">----.--.--</span></div>
+  </div>
+</div>
+
+<!-- ── MAIN GRID ── -->
+<div class="main-grid">
+  <div class="status-card loading" id="sc">
+    <div class="s-emoji" id="se">⏳</div>
+    <div class="s-label" id="sl">대기중</div>
+    <div class="s-desc"  id="sd">지역을 설정해주세요</div>
+    <div class="warn-badge" id="wb" style="display:none"></div>
+  </div>
+  <div class="dual-card">
+    <h2>🔍 항목별 확인</h2>
+    <div class="indicator dust">
+      <div class="ind-icon">😷</div>
+      <div class="ind-body">
+        <div class="ind-title">미세먼지 (PM2.5)</div>
+        <div class="ind-val" id="dv">--</div>
+        <div class="ind-sub" id="ds">㎍/㎥</div>
+      </div>
+      <div class="badge bg-muted" id="db">--</div>
+    </div>
+    <div class="indicator heat">
+      <div class="ind-icon">🌡️</div>
+      <div class="ind-body">
+        <div class="ind-title">폭염 특보 현황</div>
+        <div class="ind-val" id="hv">--</div>
+        <div class="ind-sub" id="hs">특보 정보</div>
+      </div>
+      <div class="badge bg-muted" id="hb">--</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── METRICS ── -->
+<div class="metrics">
+  <div class="mc"><div class="mk">🌫 PM2.5</div><div class="mv" id="m1">--</div><div class="mu">㎍/㎥</div></div>
+  <div class="mc"><div class="mk">💨 PM10</div> <div class="mv" id="m2">--</div><div class="mu">㎍/㎥</div></div>
+  <div class="mc"><div class="mk">🌿 오존 O₃</div><div class="mv" id="m3">--</div><div class="mu">ppm</div></div>
+  <div class="mc"><div class="mk">📊 통합대기</div><div class="mv" id="m4">--</div><div class="mu" id="m4l">CAI</div></div>
+</div>
+
+<!-- ── CALENDAR ── -->
+<div class="cal-section">
+  <div class="cal-head">
+    <h2>📅 7일 예보 (미세먼지 + 폭염특보)</h2>
+    <div class="legend">
+      <div class="li"><div class="ld" style="background:var(--heat)"></div>폭염특보</div>
+      <div class="li"><div class="ld" style="background:var(--dust)"></div>미세먼지</div>
+      <div class="li"><div class="ld" style="background:var(--good)"></div>오늘</div>
+      <div class="li"><div class="ld" style="background:var(--caution)"></div>내일예고</div>
+    </div>
+  </div>
+  <div class="cal-grid" id="cg">
+    <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:28px;font-weight:700;">지역 설정 후 표시됩니다</div>
+  </div>
+</div>
+
+
+<!-- ── GUIDE SECTION ── -->
+<div class="guide">
+
+  <!-- 1. 야외활동 안전 기준 타이틀 -->
+  <div class="guide-block">
+    <h3>📋 야외활동 안전 기준</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="criteria-grid">
+
+      <!-- 미세먼지 기준표 -->
+      <div>
+        <div style="font-size:clamp(12px,1.3vw,15px);font-weight:900;color:var(--dust);margin-bottom:10px;">😷 미세먼지 기준 (㎍/㎥)</div>
+        <table class="guide-table">
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th class="td-good">좋음</th>
+              <th class="td-good">보통</th>
+              <th class="td-caution">나쁨</th>
+              <th class="td-bad">매우나쁨<br>★주의보★</th>
+              <th class="td-bad">매우나쁨<br>★경보★</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--muted);font-weight:800;">미세먼지<br><span style="font-size:11px;">PM-10</span></td>
+              <td class="td-good">0~30</td>
+              <td class="td-good">31~80</td>
+              <td class="td-caution">81~150</td>
+              <td class="td-bad">150 이상</td>
+              <td class="td-bad">300 이상</td>
+            </tr>
+            <tr>
+              <td style="color:var(--muted);font-weight:800;">초미세먼지<br><span style="font-size:11px;">PM-2.5</span></td>
+              <td class="td-good">0~15</td>
+              <td class="td-good">16~35</td>
+              <td class="td-caution">36~75</td>
+              <td class="td-bad">75 이상</td>
+              <td class="td-bad">150 이상</td>
+            </tr>
+            <tr>
+              <td style="color:var(--muted);font-weight:800;">실외수업</td>
+              <td class="td-good" colspan="2">✅ 가능</td>
+              <td class="td-caution">⚠️ 자제</td>
+              <td class="td-bad" colspan="2">🚫 금지</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 폭염 기준표 -->
+      <div>
+        <div style="font-size:clamp(12px,1.3vw,15px);font-weight:900;color:var(--heat);margin-bottom:10px;">🌡️ 폭염 특보 기준</div>
+        <table class="guide-table">
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>기준</th>
+              <th>실외수업</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--muted);font-weight:800;">특보 없음</td>
+              <td style="color:rgba(255,255,255,.6);font-size:12px;">33°C 미만</td>
+              <td class="td-good">✅ 가능</td>
+            </tr>
+            <tr>
+              <td class="td-caution" style="font-weight:900;">폭염주의보</td>
+              <td style="color:rgba(255,255,255,.7);font-size:12px;">33°C 이상<br>2일 지속</td>
+              <td class="td-caution">⚠️ 자제</td>
+            </tr>
+            <tr>
+              <td class="td-bad" style="font-weight:900;">폭염경보</td>
+              <td style="color:rgba(255,255,255,.7);font-size:12px;">35°C 이상<br>2일 지속</td>
+              <td class="td-bad">🚫 금지</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:10px;font-size:clamp(10px,1vw,12px);color:var(--muted);font-weight:700;line-height:1.6;">
+          ※ 미세먼지와 폭염이 동시에 발생한 경우<br>더 나쁜 기준을 적용합니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 단계별 행동요령 -->
+  <div class="guide-block">
+    <h3>🦺 단계별 행동요령</h3>
+    <div class="action-grid">
+
+      <div class="action-card good">
+        <div class="action-title">🏃 가능</div>
+        <ul class="action-list">
+          <li>평소처럼 야외활동 가능해요</li>
+          <li>운동장, 체육 수업 정상 진행</li>
+          <li>현장학습·운동회 예정대로 진행</li>
+          <li>물 자주 마시는 습관 들이기</li>
+          <li>활동 후 손 씻기!</li>
+        </ul>
+      </div>
+
+      <div class="action-card caution">
+        <div class="action-title">⚠️ 자제</div>
+        <ul class="action-list">
+          <li>야외 체육 수업 시간 단축</li>
+          <li>격렬한 운동 줄이고 가볍게</li>
+          <li>KF80 이상 마스크 착용 권장</li>
+          <li>물 자주 마시기, 그늘에서 쉬기</li>
+          <li>창문 닫고 공기청정기 가동</li>
+          <li>기저질환 학생은 실내 수업으로 대체</li>
+        </ul>
+      </div>
+
+      <div class="action-card bad">
+        <div class="action-title">🚫 금지</div>
+        <ul class="action-list">
+          <li>모든 실외 수업·활동 금지</li>
+          <li>체육·현장학습 실내로 대체</li>
+          <li>창문 완전히 닫기</li>
+          <li>공기청정기 반드시 가동</li>
+          <li>등·하교 시간 조정 검토</li>
+          <li>기저질환 학생 즉시 귀가 조치</li>
+          <li>급식소 기계·기구 세척 강화</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3. 기저질환 학생 안내 -->
+  <div class="guide-block">
+    <h3>🏥 기저질환 학생 특별 안내</h3>
+    <div class="condition-box">
+      <h4>해당 질환: 천식 · 알레르기 · 아토피 · 호흡기질환 · 심혈관질환</h4>
+      <p>
+        기저질환이 있는 학생은 미세먼지 또는 오존 농도가 <strong>'나쁨' 이상</strong>인 날,
+        당일 수업 시작 전 <strong>오전 8시 50분 이전</strong>에 담임선생님께
+        전화·문자로 연락하시면 <strong>질병결석으로 인정</strong>됩니다.<br><br>
+        ※ 사전에 <strong>의사 진단서 또는 의견서</strong>(소견서·진료확인서 등)를 제출하셔야 합니다.<br>
+        ※ 미세먼지와 유관성이 드러나는 의사소견 또는 향후 치료의견이 명시되어야 합니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- 4. 학생용 설명 -->
+  <div class="guide-block">
+    <h3>💬 오늘 밖에서 놀 수 있을까? — 선생님이 쉽게 설명해 드릴게요!</h3>
+    <div class="student-msg">
+      우리가 숨 쉬는 공기 속에는 아주 작은 먼지들이 떠다닐 수 있어요.<br>
+      이 먼지가 많아지면 몸에 좋지 않기 때문에, 매일매일 확인하는 게 중요해요.<br><br>
+      <span class="em">🏃 "가능"이면</span> — 오늘 공기가 깨끗해요! 신나게 뛰어놀아도 돼요.<br>
+      <span class="em-w">⚠️ "자제"이면</span> — 공기가 조금 좋지 않아요. 오래 밖에 있지 말고, 마스크를 꼭 써요.<br>
+      <span class="em-b">🚫 "금지"이면</span> — 오늘은 밖에 나가면 몸이 힘들 수 있어요. 실내에서 즐겁게 지내요!<br><br>
+      💡 날씨가 너무 더울 때도 마찬가지예요. <span class="em-w">폭염주의보</span>는 "오늘 많이 더우니 조심해요",
+      <span class="em-b">폭염경보</span>는 "너무 뜨거워서 밖에 나가면 위험해요"라는 신호예요.<br><br>
+      건강을 지키는 가장 좋은 방법은 <span class="em">오늘 날씨를 먼저 확인하는 것</span>이에요! 🌟
+    </div>
+  </div>
+
+</div>
+
+<div class="errbox" id="err" style="display:none"></div>
+
+<!-- ── LOCATION MODAL ── -->
+<div class="modal-bg" id="modalBg" style="display:none">
+  <div class="modal">
+    <h2>📍 지역 설정</h2>
+    <p>시/도 → 시/군/구 → 읍/면/동 순서로 선택하세요.<br>한 번 설정하면 다음 접속 시 자동으로 불러옵니다.</p>
+    <div class="sel-row">
+      <select id="selSido"   onchange="onSidoChange()"><option value="">시/도 선택</option></select>
+      <select id="selSigun"  onchange="onSigunChange()" disabled><option value="">시/군/구</option></select>
+      <select id="selDong"   onchange="onDongChange()"  disabled><option value="">읍/면/동</option></select>
+    </div>
+    <div class="modal-preview" id="locPreview">선택된 지역 없음</div>
+    <div class="modal-btns">
+      <button class="mbtn cancel"  onclick="closeModal()">취소</button>
+      <button class="mbtn confirm" id="confirmBtn" onclick="confirmLocation()" disabled>이 지역으로 설정</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════ */
+const KEY   = '9e644bbc9679873e697c8e70127dc6c6d1073968698887cef1fc34aba8e0a36c';
+const PROXY = 'https://api.allorigins.win/get?url=';
+const LS_KEY = 'outdoor_loc_v2';
+
+/* 에어코리아 sidoName 매핑 (시도코드 → API 파라미터) */
+const SIDO_API = {
+  '서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천',
+  '광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종',
+  '경기도':'경기','강원특별자치도':'강원','충청북도':'충북','충청남도':'충남',
+  '전북특별자치도':'전북','전라남도':'전남','경상북도':'경북','경상남도':'경남',
+  '제주특별자치도':'제주'
+};
+
+/* 기상청 기상특보 지점코드 (시도 대표) */
+const STN = {
+  '서울특별시':'108','부산광역시':'159','대구광역시':'143','인천광역시':'112',
+  '광주광역시':'156','대전광역시':'133','울산광역시':'152','세종특별자치시':'133',
+  '경기도':'119','강원특별자치도':'105','충청북도':'131','충청남도':'129',
+  '전북특별자치도':'146','전라남도':'165','경상북도':'136','경상남도':'155',
+  '제주특별자치도':'184'
+};
+
+/* ── 행정구역 데이터 (시도→시군구→읍면동) ──
+   공공데이터포털 행정표준코드 기반 주요 지역
+   실서비스에서는 행정안전부 법정동코드 API로 동적 로드 가능 */
+const REGIONS = {
+  "서울특별시":{
+    "종로구":["청운효자동","사직동","삼청동","부암동","평창동","무악동","교남동","가회동","혜화동","명륜진명동","창신1동","창신2동","창신3동","숭인1동","숭인2동"],
+    "중구":["소공동","회현동","명동","필동","장충동","광희동","을지로동","신당동","다산동","약수동","청구동","신당5동","동화동","황학동","중림동"],
+    "용산구":["후암동","용산2가동","남영동","청파동","원효로1동","원효로2동","효창동","용문동","한강로동","이촌1동","이촌2동","이태원1동","이태원2동","한남동","서빙고동","보광동","주성동"],
+    "성동구":["왕십리2동","왕십리도선동","마장동","사근동","행당1동","행당2동","응봉동","금호1가동","금호2·3가동","금호4가동","옥수동","성수1가1동","성수1가2동","성수2가1동","성수2가3동","송정동","용답동"],
+    "광진구":["화양동","군자동","능동","구의1동","구의2동","구의3동","광장동","자양1동","자양2동","자양3동","자양4동","중곡1동","중곡2동","중곡3동","중곡4동"],
+    "동대문구":["용신동","제기동","전농1동","전농2동","답십리1동","답십리2동","장안1동","장안2동","청량리동","회기동","휘경1동","휘경2동","이문1동","이문2동"],
+    "중랑구":["면목본동","면목3·8동","면목4동","면목5동","면목7동","상봉1동","상봉2동","중화1동","중화2동","묵1동","묵2동","망우3동","망우본동","신내1동","신내2동"],
+    "성북구":["성북동","삼선동","동선동","돈암1동","돈암2동","안암동","보문동","정릉1동","정릉2동","정릉3동","정릉4동","길음1동","길음2동","종암동","월곡1동","월곡2동","장위1동","장위2동","장위3동","석관동"],
+    "강북구":["삼양동","미아동","송중동","송천동","삼각산동","번1동","번2동","번3동","수유1동","수유2동","수유3동","우이동","인수동"],
+    "도봉구":["쌍문1동","쌍문2동","쌍문3동","쌍문4동","방학1동","방학2동","방학3동","창1동","창2동","창3동","창4동","창5동","도봉1동","도봉2동"],
+    "노원구":["월계1동","월계2동","월계3동","공릉1동","공릉2동","하계1동","하계2동","중계본동","중계1동","중계2·3동","중계4동","상계1동","상계2동","상계3·4동","상계5동","상계6·7동","상계8동","상계9동","상계10동"],
+    "은평구":["녹번동","불광1동","불광2동","갈현1동","갈현2동","구산동","대조동","응암1동","응암2동","응암3동","역촌동","신사1동","신사2동","증산동","수색동","진관동"],
+    "서대문구":["천연동","북아현동","충현동","신촌동","연희동","홍제1동","홍제2동","홍제3동","홍은1동","홍은2동","남가좌1동","남가좌2동","북가좌1동","북가좌2동"],
+    "마포구":["아현동","공덕동","도화동","용강동","대흥동","염리동","신수동","서강동","서교동","합정동","망원1동","망원2동","연남동","성산1동","성산2동","상암동"],
+    "양천구":["신월1동","신월2동","신월3동","신월4동","신월5동","신월6동","신월7동","신정1동","신정2동","신정3동","신정4동","신정6동","신정7동","목1동","목2동","목3동","목4동","목5동"],
+    "강서구":["염창동","등촌1동","등촌2동","등촌3동","화곡1동","화곡2동","화곡3동","화곡4동","화곡6동","화곡8동","가양1동","가양2동","가양3동","발산1동","우장산동","공항동","방화1동","방화2동","방화3동"],
+    "구로구":["신도림동","구로1동","구로2동","구로3동","구로4동","구로5동","가리봉동","고척1동","고척2동","개봉1동","개봉2동","개봉3동","오류1동","오류2동","수궁동","항동"],
+    "금천구":["가산동","독산1동","독산2동","독산3동","독산4동","시흥1동","시흥2동","시흥3동","시흥4동","시흥5동"],
+    "영등포구":["영등포동","영등포본동","당산1동","당산2동","도림동","문래동","양평1동","양평2동","신길1동","신길3동","신길4동","신길5동","신길6동","신길7동","대림1동","대림2동","대림3동"],
+    "동작구":["노량진1동","노량진2동","상도1동","상도2동","상도3동","상도4동","흑석동","동작동","사당1동","사당2동","사당3동","사당4동","사당5동","대방동","신대방1동","신대방2동"],
+    "관악구":["보라매동","은천동","성현동","행운동","청림동","중앙동","인헌동","낙성대동","청룡동","남현동","신림동","난향동","서원동","신사동","미성동","난곡동","삼성동","조원동"],
+    "서초구":["서초1동","서초2동","서초3동","서초4동","잠원동","반포본동","반포1동","반포2동","반포3동","반포4동","방배본동","방배1동","방배2동","방배3동","방배4동","양재1동","양재2동","내곡동"],
+    "강남구":["신사동","논현1동","논현2동","압구정동","청담동","삼성1동","삼성2동","대치1동","대치2동","대치4동","역삼1동","역삼2동","도곡1동","도곡2동","개포1동","개포2동","개포4동","세곡동","일원본동","일원1동","일원2동","수서동"],
+    "송파구":["풍납1동","풍납2동","거여1동","거여2동","마천1동","마천2동","방이1동","방이2동","오금동","송파1동","송파2동","석촌동","삼전동","가락본동","가락1동","가락2동","문정1동","문정2동","장지동","위례동","잠실본동","잠실2동","잠실3동","잠실4동","잠실6동","잠실7동"],
+    "강동구":["강일동","상일동","명일1동","명일2동","고덕1동","고덕2동","암사1동","암사2동","암사3동","길동","둔촌1동","둔촌2동","천호1동","천호2동","천호3동","성내1동","성내2동","성내3동"]
+  },
+  "부산광역시":{
+    "중구":["중앙동","동광동","대청동","보수동","부평동","광복동","남포동","영주1동","영주2동"],
+    "서구":["동대신1동","동대신2동","동대신3동","서대신1동","서대신3동","서대신4동","부민동","아미동","초장동","충무동","남부민1동","남부민2동","암남동"],
+    "동구":["초량1동","초량2동","초량3동","초량6동","수정1동","수정2동","수정3동","수정4동","수정5동","좌천동","범일1동","범일2동","범일5동","범일6동"],
+    "영도구":["남항동","영선1동","영선2동","신선동","봉래1동","봉래2동","청학1동","청학2동","동삼1동","동삼2동","동삼3동"],
+    "부산진구":["부전1동","부전2동","연지동","초읍동","양정1동","양정2동","전포1동","전포2동","부암1동","부암3동","당감1동","당감2동","당감3동","당감4동","개금1동","개금2동","개금3동","가야1동","가야2동"],
+    "동래구":["수민동","복산동","명륜동","온천1동","온천2동","온천3동","사직1동","사직2동","사직3동","안락1동","안락2동","명장1동","명장2동"],
+    "남구":["대연1동","대연3동","대연4동","대연5동","대연6동","용호1동","용호2동","용호3동","용호4동","용당동","감만1동","감만2동","우암동","문현1동","문현2동","문현3동","문현4동"],
+    "북구":["구포1동","구포2동","구포3동","덕천1동","덕천2동","덕천3동","만덕1동","만덕2동","만덕3동","화명1동","화명2동","화명3동","금곡동","삼락동","강서구"],
+    "해운대구":["우1동","우2동","우3동","좌1동","좌2동","좌3동","좌4동","중1동","중2동","송정동","반송1동","반송2동","반여1동","반여2동","반여3동","반여4동","재송1동","재송2동"],
+    "사하구":["괴정1동","괴정2동","괴정3동","괴정4동","당리동","하단1동","하단2동","신평1동","신평2동","장림1동","장림2동","다대1동","다대2동","구평동","감천1동","감천2동"],
+    "금정구":["서1동","서2동","서3동","금사동","부곡1동","부곡2동","부곡3동","부곡4동","장전1동","장전2동","장전3동","남산동","구서1동","구서2동","청룡노포동","선두구동","두구동","오륜동"],
+    "강서구":["대저1동","대저2동","강동동","명지1동","명지2동","가락동","녹산동","천성동"],
+    "연제구":["거제1동","거제2동","거제3동","거제4동","연산1동","연산2동","연산3동","연산4동","연산5동","연산6동","연산8동","연산9동"],
+    "수영구":["수영동","망미1동","망미2동","광안1동","광안2동","광안3동","광안4동","민락동","남천1동","남천2동"],
+    "사상구":["삼락동","모라1동","모라2동","모라3동","덕포1동","덕포2동","괘법동","학장동","엄궁동","주례1동","주례2동","주례3동"],
+    "기장군":["기장읍","장안읍","정관읍","일광읍","철마면"]
+  },
+  "대구광역시":{
+    "중구":["성내1동","성내2동","성내3동","동인1가동","동인2가동","동인3가동","동인4가동","삼덕동","수창동","약전동","남산1동","남산2동","남산3동","남산4동","대봉1동","대봉2동"],
+    "동구":["신암1동","신암2동","신암3동","신암4동","신암5동","신천1·2동","신천3동","신천4동","효목1동","효목2동","범어1동","범어2동","범어3동","범어4동","수성1가동","안심1동","안심2동","안심3동","안심4동","동촌동","방촌동","해안동","공산동","도학동","지묘동","신기동","중대동","봉무동","율하동","신서동","각산동","혁신동"],
+    "서구":["평리1동","평리2동","평리3동","평리4동","평리5동","평리6동","내당1동","내당2동","내당3동","내당4동","비산1동","비산2동","비산3동","비산4동","비산5동","비산6동","비산7동","원대동"],
+    "남구":["이천동","봉덕1동","봉덕2동","봉덕3동","대명1동","대명2동","대명3동","대명4동","대명5동","대명6동","대명7동","대명9동","대명10동","대명11동"],
+    "북구":["고성동","칠성동","침산1동","침산2동","침산3동","노원동","복현1동","복현2동","산격1동","산격2동","산격3동","산격4동","대현동","검단동","읍내동","동변동","서변동","관음동","구암동","태전1동","태전2동","매천동","팔달동","금호동","사수동","조야동","도남동"],
+    "수성구":["수성1가동","수성2·3가동","수성4가동","황금1동","황금2동","범어1동","범어2동","범어3동","범어4동","만촌1동","만촌2동","만촌3동","두산동","지산1동","지산2동","범물1동","범물2동","고산1동","고산2동","고산3동","시지동","성동"],
+    "달서구":["성당동","두류1·2동","두류3동","감삼동","죽전동","용산1동","용산2동","이곡1동","이곡2동","신당동","월성1동","월성2동","도원동","유천1동","유천2동","본리동","진천동","상인1동","상인2동","상인3동","본동","호산동","계대동","송현1동","송현2동","파호동"],
+    "달성군":["화원읍","논공읍","다사읍","유가읍","옥포읍","현풍읍","가창면","하빈면","구지면"]
+  },
+  "인천광역시":{
+    "중구":["중구1동","중구2동","중구3동","중구4동","신포동","연안동","북성동","월미도","운서동","중산동","운남동","남북동","을왕동","덕교동","백석동"],
+    "동구":["만석동","화수1·화평동","화수2동","송현1동","송현2동","금곡동","도화1동","도화2·3동","송림1동","송림2동","송림3동","송림4동","송림5·6동"],
+    "미추홀구":["숭의1·3동","숭의2동","숭의4동","용현1·4동","용현2동","용현3동","용현5동","학익1동","학익2동","도화동","주안1동","주안2동","주안3동","주안4동","주안5동","주안6동","주안7동","주안8동","문학동"],
+    "연수구":["옥련1동","옥련2동","선학동","연수1동","연수2동","연수3동","청학동","동춘1동","동춘2동","동춘3동","송도1동","송도2동","송도3동","송도4동"],
+    "남동구":["구월1동","구월2동","구월3동","구월4동","간석1동","간석2동","간석3동","간석4동","만수1동","만수2동","만수3동","만수4동","만수5동","만수6동","남촌도림동","논현1동","논현2동","논현고잔동","서창동","장수서창동"],
+    "부평구":["부평1동","부평2동","부평3동","부평4동","부평5동","부평6동","산곡1동","산곡2동","산곡3동","산곡4동","청천1동","청천2동","갈산1동","갈산2동","십정1동","십정2동","삼산1동","삼산2동"],
+    "계양구":["계산1동","계산2동","계산3동","계산4동","작전1동","작전2동","작전서운동","효성1동","효성2동","부평동","임학동","용종동","박촌동","동양동","귤현동","다남동","오류왕길동"],
+    "서구":["검단1동","검단2동","검단3동","검단4동","검단5동","마전동","오류동","당하동","원당동","대곡동","불로대화동","심곡동","가좌1동","가좌2동","가좌3동","가좌4동","석남1동","석남2동","석남3동","신현원창동"],
+    "강화군":["강화읍","선원면","불은면","길상면","화도면","양도면","내가면","하점면","양사면","송해면","교동면","삼산면","서도면"],
+    "옹진군":["북도면","백령면","대청면","덕적면","자월면","영흥면"]
+  },
+  "광주광역시":{
+    "동구":["궁동","충장1동","충장2동","충장3동","충장4동","충장5동","지산1동","지산2동","산수1동","산수2동","학동","운림동","동명동","서남동","방림1동","방림2동","백운1동","백운2동","월산동","월산4동","월산5동","양림동","봉선1동","봉선2동"],
+    "서구":["양동","농성1동","농성2동","광천동","유덕동","치평동","상무1동","상무2동","서창동","금호1동","금호2동","화정1동","화정2동","화정3동","화정4동","동천동","풍암동","세하동","벽진동","마륵동"],
+    "남구":["방림1동","방림2동","백운1동","백운2동","월산동","월산4동","월산5동","양림동","봉선1동","봉선2동","주월1동","주월2동","월남동","사직동","효덕동","덕남동","진월동","승촌동","대촌동"],
+    "북구":["중흥1동","중흥2동","중흥3동","유동","임동","신안동","용봉동","운암1동","운암2동","운암3동","풍향동","문화동","문흥1동","문흥2동","오치1동","오치2동","석곡동","망월동","충효동","청풍동","일곡동","양산동","건국동","동림동"],
+    "광산구":["송정1동","송정2동","도산동","신흥동","어룡동","우산동","월곡1동","월곡2동","비아동","첨단1동","첨단2동","신가동","수완동","흑석동","임곡동","동곡동","평동","삼도동","본량동"]
+  },
+  "대전광역시":{
+    "동구":["원동","성남동","인동","중동","효동","판암1동","판암2동","삼성동","자양동","홍도동","천동","대별동","이사동","용운동","대동","낭월동","주촌동","가양1동","가양2동","용전동","중村동","오정동","세천동","신상동","신하동","신촌동","장척동","마산동","직동"],
+    "중구":["은행선화동","목동","중촌동","대흥동","문창동","산성동","용두동","오류동","태평1동","태평2동","태평3동","태평4동","유천1동","유천2동","문화동"],
+    "서구":["둔산1동","둔산2동","둔산3동","월평1동","월평2동","월평3동","갈마1동","갈마2동","탄방동","삼천동","가수원동","도마1동","도마2동","정림동","변동","흑석동","복수동","용문동"],
+    "유성구":["온천1동","온천2동","노은1동","노은2동","노은3동","신성동","전민동","구즉동","관평동","봉명1동","봉명2동","반석동","장대동","원내동","원신흥동","갑동","대정동","금고동","방동","복용동","외삼동","봉산동","학하동","성북동","세동","전동","구암동","송강동","문지동","신봉동","추목동"],
+    "대덕구":["오정동","읍내동","中里동","법동","목상동","갈전동","신대동","비래동","장동","미호동","와동","부수동","평촌동","덕암동","중리동","석봉동","우물동","신탄진동","회덕동"]
+  },
+  "울산광역시":{
+    "중구":["학성동","반구1동","반구2동","복산동","성남동","옥교동","우정동","북정동","장현동","태화동","다운동","약사동","남외동","동동","교동","서동"],
+    "남구":["삼산동","달동","무거동","옥동","신정1동","신정2동","신정3동","신정4동","신정5동","야음장생포동","수암동","선암동","대현동","두왕동"],
+    "동구":["방어동","일산동","화정동","전하1동","전하2동","화양동","남목1동","남목2동","남목3동"],
+    "북구":["중산동","호계동","양정동","효문동","천곡동","화봉동","진장동","연암동","농소1동","농소2동","농소3동","달천동","강동동","산하동","어물동"],
+    "울주군":["울주군읍","청량읍","범서읍","온양읍","언양읍","온산읍","두동면","두서면","웅촌면","삼남면","삼동면","서생면","상북면","삼남면"]
+  },
+  "세종특별자치시":{
+    "세종시":["조치원읍","연기면","연동면","부강면","금남면","장군면","연서면","전의면","전동면","소정면","한솔동","도담동","아름동","종촌동","고운동","보람동","대평동","소담동","반곡동","다정동","새롬동","나성동","산울동","해밀동","집현동","수산동","합강동"]
+  },
+  "경기도":{
+    "수원시 장안구":["파장동","정자1동","정자2동","정자3동","조원1동","조원2동","율천동","영화동","송죽동","천천동","망포동"],
+    "수원시 권선구":["세류1동","세류2동","세류3동","권선1동","권선2동","금곡동","호매실동","입북동","오목천동","평동","고색동","구운동","탑동","곡선동","장지동","대황교동","평동"],
+    "수원시 팔달구":["매산로1가동","매산로2가동","매산로3가동","고등동","화서1동","화서2동","지동","우만1동","우만2동","인계동","연무동"],
+    "수원시 영통구":["매탄1동","매탄2동","매탄3동","매탄4동","원천동","영통1동","영통2동","영통3동","망포1동","망포2동"],
+    "성남시 수정구":["수진1동","수진2동","신흥1동","신흥2동","신흥3동","태평1동","태평2동","태평3동","태평4동","복정동","위례동","중원구"],
+    "성남시 중원구":["성남동","금광1동","금광2동","은행1동","은행2동","상대원1동","상대원2동","상대원3동","하대원동","도촌동"],
+    "성남시 분당구":["분당동","수내1동","수내2동","수내3동","정자1동","정자2동","정자3동","금곡동","구미1동","구미2동","야탑1동","야탑2동","야탑3동","이매1동","이매2동","서현1동","서현2동","판교동","삼평동","백현동","운중동"],
+    "안양시 만안구":["안양1동","안양2동","안양3동","안양4동","안양5동","안양6동","안양7동","안양8동","안양9동","박달1동","박달2동","석수1동","석수2동","석수3동"],
+    "안양시 동안구":["비산1동","비산2동","비산3동","관양1동","관양2동","평촌동","호계1동","호계2동","호계3동"],
+    "부천시":["원미동","심곡본동","심곡1동","소사동","소사본3동","범박동","괴안동","송내1동","송내2동","중1동","중2동","중3동","중4동","상동","역곡1동","역곡2동","역곡3동","춘의동","도당동","오정동","신흥동"],
+    "광명시":["광명1동","광명2동","광명3동","광명4동","광명5동","광명6동","광명7동","철산1동","철산2동","철산3동","철산4동","하안1동","하안2동","하안3동","하안4동","소하1동","소하2동","학온동"],
+    "평택시":["평택동","서정동","장당동","세교동","지산동","신장1동","신장2동","안중읍","포승읍","청북읍","진위면","서탄면","고덕면","오성면","현덕면","팽성읍","통복동","중앙동","원평동","비전1동","비전2동","송탄동","지제동","독곡동"],
+    "동두천시":["생연1동","생연2동","중앙동","보산동","소요동","송내동","상패동","걸산동","탑동동"],
+    "안산시 상록구":["사동","본오1동","본오2동","본오3동","팔곡일동","팔곡이동","건건동","수암동","장상동","장하동","월피동","성포동","능길동","화정동"],
+    "안산시 단원구":["원곡본동","원곡1동","원곡2동","초지동","선부1동","선부2동","선부3동","와동","호수동","고잔1동","고잔2동","대부동동","대부북동","대부남동","선감동","풍도동"],
+    "고양시 덕양구":["주교동","원신동","흥도동","성사1동","성사2동","화전동","행신1동","행신2동","행신3동","행주동","능곡동","화정1동","화정2동","창릉동","벽제동","신도동","원흥동","삼송동","지축동","효자동","관산동","고양동","강매동"],
+    "고양시 일산동구":["식사동","중산동","정발산동","마두1동","마두2동","장항1동","장항2동","백석1동","백석2동","풍동","설문동","산황동","사리현동"],
+    "고양시 일산서구":["주엽1동","주엽2동","대화동","탄현1동","탄현2동","일산1동","일산2동","일산3동","덕이동","가좌동","구산동","송포동","법곳동"],
+    "의정부시":["의정부1동","의정부2동","의정부3동","호원동","장암동","신곡1동","신곡2동","용현동","민락동","낙양동","자금동","가능1동","가능2동","가능3동","녹양동"],
+    "용인시 처인구":["처인구"],
+    "용인시 기흥구":["기흥구"],
+    "용인시 수지구":["수지구"],
+    "파주시":["파주읍","문산읍","법원읍","조리읍","월롱면","탄현면","광탄면","파평면","적성면","군내면","장단면","진동면","진서면"],
+    "이천시":["이천시"],
+    "김포시":["김포시"],
+    "하남시":["하남시"],
+    "광주시":["광주시"],
+    "여주시":["여주시"],
+    "양평군":["양평군"],
+    "가평군":["가평군"],
+    "연천군":["연천군"],
+    "포천시":["포천시"],
+    "동두천시":["동두천시"],
+    "양주시":["양주시"],
+    "구리시":["구리시"],
+    "남양주시":["남양주시"],
+    "의왕시":["의왕시"],
+    "군포시":["군포시"],
+    "시흥시":["시흥시"],
+    "화성시":["화성시"],
+    "안성시":["안성시"],
+    "오산시":["오산시"],
+    "과천시":["과천시"]
+  },
+  "강원특별자치도":{
+    "춘천시":["춘천시"],
+    "원주시":["원주시"],
+    "강릉시":["강릉시"],
+    "동해시":["동해시"],
+    "태백시":["태백시"],
+    "속초시":["속초시"],
+    "삼척시":["삼척시"],
+    "홍천군":["홍천군"],
+    "횡성군":["횡성군"],
+    "영월군":["영월군"],
+    "평창군":["평창군"],
+    "정선군":["정선군"],
+    "철원군":["철원군"],
+    "화천군":["화천군"],
+    "양구군":["양구군"],
+    "인제군":["인제군"],
+    "고성군":["고성군"],
+    "양양군":["양양군"]
+  },
+  "충청북도":{
+    "청주시 상당구":["상당구"],
+    "청주시 서원구":["서원구"],
+    "청주시 흥덕구":["흥덕구"],
+    "청주시 청원구":["청원구"],
+    "충주시":["충주시"],
+    "제천시":["제천시"],
+    "보은군":["보은군"],
+    "옥천군":["옥천군"],
+    "영동군":["영동군"],
+    "증평군":["증평군"],
+    "진천군":["진천군"],
+    "괴산군":["괴산군"],
+    "음성군":["음성군"],
+    "단양군":["단양군"]
+  },
+  "충청남도":{
+    "천안시 동남구":["동남구"],
+    "천안시 서북구":["서북구"],
+    "공주시":["공주시"],
+    "보령시":["보령시"],
+    "아산시":["아산시"],
+    "서산시":["서산시"],
+    "논산시":["논산시"],
+    "계룡시":["계룡시"],
+    "당진시":["당진시"],
+    "금산군":["금산군"],
+    "부여군":["부여군"],
+    "서천군":["서천군"],
+    "청양군":["청양군"],
+    "홍성군":["홍성군"],
+    "예산군":["예산군"],
+    "태안군":["태안군"]
+  },
+  "전북특별자치도":{
+    "전주시 완산구":["완산구"],
+    "전주시 덕진구":["덕진구"],
+    "군산시":["군산시"],
+    "익산시":["익산시"],
+    "정읍시":["정읍시"],
+    "남원시":["남원시"],
+    "김제시":["김제시"],
+    "완주군":["완주군"],
+    "진안군":["진안군"],
+    "무주군":["무주군"],
+    "장수군":["장수군"],
+    "임실군":["임실군"],
+    "순창군":["순창군"],
+    "고창군":["고창군"],
+    "부안군":["부안군"]
+  },
+  "전라남도":{
+    "목포시":["목포시"],
+    "여수시":["여수시"],
+    "순천시":["순천시"],
+    "나주시":["나주시"],
+    "광양시":["광양시"],
+    "담양군":["담양군"],
+    "곡성군":["곡성군"],
+    "구례군":["구례군"],
+    "고흥군":["고흥군"],
+    "보성군":["보성군"],
+    "화순군":["화순군"],
+    "장흥군":["장흥군"],
+    "강진군":["강진군"],
+    "해남군":["해남군"],
+    "영암군":["영암군"],
+    "무안군":["무안군"],
+    "함평군":["함평군"],
+    "영광군":["영광군"],
+    "장성군":["장성군"],
+    "완도군":["완도군"],
+    "진도군":["진도군"],
+    "신안군":["신안군"]
+  },
+  "경상북도":{
+    "포항시 남구":["남구"],
+    "포항시 북구":["북구"],
+    "경주시":["경주시"],
+    "김천시":["김천시"],
+    "안동시":["안동시"],
+    "구미시":["구미시"],
+    "영주시":["영주시"],
+    "영천시":["영천시"],
+    "상주시":["상주시"],
+    "문경시":["문경시"],
+    "경산시":["경산시"],
+    "의성군":["의성군"],
+    "청송군":["청송군"],
+    "영양군":["영양군"],
+    "영덕군":["영덕군"],
+    "청도군":["청도군"],
+    "고령군":["고령군"],
+    "성주군":["성주군"],
+    "칠곡군":["칠곡군"],
+    "예천군":["예천군"],
+    "봉화군":["봉화군"],
+    "울진군":["울진군"],
+    "울릉군":["울릉군"]
+  },
+  "경상남도":{
+    "창원시 의창구":["의창구"],
+    "창원시 성산구":["성산구"],
+    "창원시 마산합포구":["마산합포구"],
+    "창원시 마산회원구":["마산회원구"],
+    "창원시 진해구":["진해구"],
+    "진주시":["진주시"],
+    "통영시":["통영시"],
+    "사천시":["사천시"],
+    "김해시":["김해시"],
+    "밀양시":["밀양시"],
+    "거제시":["거제시"],
+    "양산시":["양산시"],
+    "의령군":["의령군"],
+    "함안군":["함안군"],
+    "창녕군":["창녕군"],
+    "고성군":["고성군"],
+    "남해군":["남해군"],
+    "하동군":["하동군"],
+    "산청군":["산청군"],
+    "함양군":["함양군"],
+    "거창군":["거창군"],
+    "합천군":["합천군"]
+  },
+  "제주특별자치도":{
+    "제주시":["한림읍","애월읍","구좌읍","조천읍","한경면","추자면","우도면","일도1동","일도2동","이도1동","이도2동","삼도1동","삼도2동","용담1동","용담2동","건입동","화북동","삼양동","봉개동","아라동","오라동","연동","노형동","외도동","이호동","도두동"],
+    "서귀포시":["대정읍","남원읍","성산읍","안덕면","표선면","송산동","정방동","중앙동","천지동","효돈동","영천동","동홍동","서홍동","대륜동","대천동","중문동","예래동","강정동","색달동","도순동","하원동","영평동","신효동","호근동"]
+  }
+};
+
+/* ═══════════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════════ */
+const DOW = ['일','월','화','수','목','금','토'];
+const pad = n => String(n).padStart(2,'0');
+function tick(){
+  const n=new Date();
+  document.getElementById('clk').textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}`;
+  document.getElementById('dt').textContent=`${n.getFullYear()}.${pad(n.getMonth()+1)}.${pad(n.getDate())} (${DOW[n.getDay()]})`;
+}
+setInterval(tick,1000); tick();
+
+/* ═══════════════════════════════════════════
+   LOCATION — localStorage 저장/로드
+═══════════════════════════════════════════ */
+const LS = 'outdoor_loc_v2';
+
+function saveLoc(loc){
+  localStorage.setItem(LS, JSON.stringify(loc));
+}
+function loadLoc(){
+  try{ return JSON.parse(localStorage.getItem(LS)); }
+  catch{ return null; }
+}
+
+/* ═══════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════ */
+let pendingLoc = null;
+
+function openModal(){
+  document.getElementById('modalBg').style.display='flex';
+  // sido 초기화
+  const sEl = document.getElementById('selSido');
+  sEl.innerHTML = '<option value="">시/도 선택</option>';
+  Object.keys(REGIONS).forEach(s=>{
+    const o=document.createElement('option'); o.value=s; o.textContent=s; sEl.appendChild(o);
+  });
+  document.getElementById('selSigun').innerHTML='<option value="">시/군/구</option>';
+  document.getElementById('selSigun').disabled=true;
+  document.getElementById('selDong').innerHTML='<option value="">읍/면/동</option>';
+  document.getElementById('selDong').disabled=true;
+  document.getElementById('locPreview').textContent='선택된 지역 없음';
+  document.getElementById('confirmBtn').disabled=true;
+  pendingLoc=null;
+
+  // 기존 저장값 복원
+  const saved = loadLoc();
+  if(saved){
+    sEl.value = saved.sido;
+    onSidoChange();
+    setTimeout(()=>{
+      document.getElementById('selSigun').value=saved.sigun;
+      onSigunChange();
+      setTimeout(()=>{
+        document.getElementById('selDong').value=saved.dong;
+        onDongChange();
+      },0);
+    },0);
+  }
+}
+
+function closeModal(){ document.getElementById('modalBg').style.display='none'; }
+
+function onSidoChange(){
+  const sido = document.getElementById('selSido').value;
+  const sEl  = document.getElementById('selSigun');
+  sEl.innerHTML = '<option value="">시/군/구 선택</option>';
+  sEl.disabled = !sido;
+  if(sido && REGIONS[sido]){
+    Object.keys(REGIONS[sido]).forEach(sg=>{
+      const o=document.createElement('option'); o.value=sg; o.textContent=sg; sEl.appendChild(o);
+    });
+  }
+  document.getElementById('selDong').innerHTML='<option value="">읍/면/동</option>';
+  document.getElementById('selDong').disabled=true;
+  document.getElementById('locPreview').textContent='선택된 지역 없음';
+  document.getElementById('confirmBtn').disabled=true;
+  pendingLoc=null;
+}
+
+function onSigunChange(){
+  const sido  = document.getElementById('selSido').value;
+  const sigun = document.getElementById('selSigun').value;
+  const dEl   = document.getElementById('selDong');
+  dEl.innerHTML = '<option value="">읍/면/동 선택</option>';
+  dEl.disabled = !sigun;
+  if(sido && sigun && REGIONS[sido]?.[sigun]){
+    REGIONS[sido][sigun].forEach(d=>{
+      const o=document.createElement('option'); o.value=d; o.textContent=d; dEl.appendChild(o);
+    });
+  }
+  document.getElementById('locPreview').textContent='읍/면/동을 선택하세요';
+  document.getElementById('confirmBtn').disabled=true;
+  pendingLoc=null;
+}
+
+function onDongChange(){
+  const sido  = document.getElementById('selSido').value;
+  const sigun = document.getElementById('selSigun').value;
+  const dong  = document.getElementById('selDong').value;
+  if(sido && sigun && dong){
+    const label = `${sido} ${sigun} ${dong}`;
+    document.getElementById('locPreview').textContent = '📍 ' + label;
+    document.getElementById('confirmBtn').disabled = false;
+    pendingLoc = { sido, sigun, dong, label };
+  }
+}
+
+function confirmLocation(){
+  if(!pendingLoc) return;
+  saveLoc(pendingLoc);
+  closeModal();
+  applyLoc(pendingLoc);
+  go();
+}
+
+function applyLoc(loc){
+  document.getElementById('locSpan').textContent = loc.label;
+}
+
+/* ═══════════════════════════════════════════
+   API
+═══════════════════════════════════════════ */
+async function apiFetch(url){
+  const r = await fetch(PROXY + encodeURIComponent(url));
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const w = await r.json();
+  return JSON.parse(w.contents);
+}
+
+// 시도명 → 에어코리아 sidoName
+function toSidoApi(sidoFull){
+  return SIDO_API[sidoFull] || sidoFull.slice(0,2);
+}
+
+// 시도명 → 기상특보 지점코드
+const STN = {
+  '서울특별시':'108','부산광역시':'159','대구광역시':'143','인천광역시':'112',
+  '광주광역시':'156','대전광역시':'133','울산광역시':'152','세종특별자치시':'133',
+  '경기도':'119','강원특별자치도':'105','충청북도':'131','충청남도':'129',
+  '전북특별자치도':'146','전라남도':'165','경상북도':'136','경상남도':'155',
+  '제주특별자치도':'184'
+};
+
+function todayYMD(){ const d=new Date(); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`; }
+function todayDash(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+
+async function fetchDust(sido){
+  const sn = encodeURIComponent(toSidoApi(sido));
+  const url = `https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?serviceKey=${KEY}&returnType=json&numOfRows=20&pageNo=1&sidoName=${sn}&ver=1.0`;
+  const d = await apiFetch(url);
+  const items = d?.response?.body?.items;
+  if(!items?.length) throw new Error('미세먼지 데이터 없음');
+  const it=items[0];
+  return { pm25:parseFloat(it.pm25Value)||null, pm10:parseFloat(it.pm10Value)||null, o3:parseFloat(it.o3Value)||null, khai:parseFloat(it.khaiValue)||null, khaiGrade:it.khaiGrade };
+}
+
+async function fetchFcst(){
+  const url = `https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMinuDustFrcstDspth?serviceKey=${KEY}&returnType=json&numOfRows=50&pageNo=1&searchDate=${todayDash()}`;
+  const d = await apiFetch(url);
+  const map={};
+  (d?.response?.body?.items||[]).forEach(it=>{ if(it.informCode==='PM25') map[it.informData]=it.informGrade||''; });
+  return map;
+}
+
+async function fetchWarn(sido){
+  const stn=STN[sido]||'108';
+  const ymd=todayYMD();
+  const fut=new Date(); fut.setDate(fut.getDate()+7);
+  const toYmd=`${fut.getFullYear()}${pad(fut.getMonth()+1)}${pad(fut.getDate())}`;
+  const url=`https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList?ServiceKey=${KEY}&pageNo=1&numOfRows=100&dataType=json&stnId=${stn}&fromTmFc=${ymd}0000&toTmFc=${toYmd}2359`;
+  const d=await apiFetch(url);
+  return (d?.response?.body?.items?.item||[]).filter(it=>(it.title||it.wrn||'').includes('폭염'));
+}
+
+/* ═══════════════════════════════════════════
+   GRADE HELPERS
+═══════════════════════════════════════════ */
+/* ── 미세먼지 등급 기준 (학교 대응 문서 기준)
+   PM2.5: 좋음 0~15 / 보통 16~35 / 나쁨 36~75 / 매우나쁨 76이상
+   PM10:  좋음 0~30 / 보통 31~80 / 나쁨 81~150 / 매우나쁨 151이상
+   주의보: PM2.5 75이상 또는 PM10 150이상 (2시간 지속) → 실외수업 금지
+   경  보: PM2.5 150이상 또는 PM10 300이상 (2시간 지속) → 실외수업 금지
+   폭염주의보: 33°C 이상 2일 지속 → 야외활동 자제
+   폭염경  보: 35°C 이상 2일 지속 → 야외활동 금지 ── */
+
+function dGrade(v){
+  if(v==null||isNaN(v)) return{l:'정보없음',c:'bg-muted',dot:'#555',rank:0};
+  if(v<=15)  return{l:'좋음',   c:'bg-good',   dot:'var(--good)',   rank:1};
+  if(v<=35)  return{l:'보통',   c:'bg-good',   dot:'var(--good)',   rank:2};
+  if(v<=75)  return{l:'나쁨',   c:'bg-caution',dot:'var(--caution)',rank:3};
+  if(v<=150) return{l:'매우나쁨(주의보)',c:'bg-bad',dot:'var(--bad)',rank:4};
+  return          {l:'매우나쁨(경보)',   c:'bg-bad',dot:'var(--bad)',rank:5};
+}
+function dGrade10(v){
+  if(v==null||isNaN(v)) return{rank:0};
+  if(v<=30)  return{rank:1};
+  if(v<=80)  return{rank:2};
+  if(v<=150) return{rank:3};
+  if(v<=300) return{rank:4};
+  return         {rank:5};
+}
+
+function overallGrade(dust, hasHeatWarn, hasHeatAlert){
+  const r25=dGrade(dust.pm25??0).rank;
+  const r10=dGrade10(dust.pm10??0).rank;
+  const rank=Math.max(r25,r10);
+  if(hasHeatAlert||rank>=4) return 'bad';
+  if(hasHeatWarn ||rank===3) return 'caution';
+  return 'good';
+}
+function fGrade(s){
+  if(!s) return{l:'--',dot:'#555',rank:0};
+  if(s.includes('매우나쁨')||s.includes('매우 나쁨')) return{l:'매우나쁨',dot:'var(--bad)',   rank:4};
+  if(s.includes('나쁨'))  return{l:'나쁨',  dot:'var(--caution)',rank:3};
+  if(s.includes('보통'))  return{l:'보통',  dot:'var(--good)',   rank:2};
+  if(s.includes('좋음'))  return{l:'좋음',  dot:'var(--good)',   rank:1};
+  return{l:s.slice(0,5),dot:'#555',rank:0};
+}
+
+/* ── 종합 판정 로직 ──────────────────────────────
+   [가능]  PM2.5 보통 이하(≤35) + 폭염특보 없음
+   [자제]  PM2.5 나쁨(36~75)  또는  폭염주의보
+   [금지]  PM2.5 매우나쁨(≥76) 또는 폭염경보
+   ※ PM10도 함께 체크하여 더 나쁜 쪽 적용
+─────────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════ */
+function render(dust, warnList){
+  const dg=dGrade(dust.pm25);
+  const hasHeatAlert = warnList.some(w=>(w.title||w.wrn||'').includes('폭염경보'));
+  const hasHeatWarn  = warnList.some(w=>(w.title||w.wrn||'').includes('폭염주의보'));
+  const grade = overallGrade(dust, hasHeatWarn, hasHeatAlert);
+
+  /* 판정 결과 텍스트
+     가능: PM2.5 보통 이하 + 폭염특보 없음
+     자제: PM2.5 나쁨 또는 폭염주의보
+     금지: PM2.5 매우나쁨 또는 폭염경보           */
+  const MAP={
+    good:   {emoji:'🏃', label:'가능', desc:'야외활동을 해도 좋아요! 신나게 뛰어놀아요 🎉'},
+    caution:{emoji:'⚠️', label:'자제', desc:'야외활동을 자제하세요. 꼭 필요하면 마스크 착용! 😷'},
+    bad:    {emoji:'🚫', label:'금지', desc:'실외수업 금지! 실내 활동으로 대체하세요 🏠'},
+  };
+  document.getElementById('sc').className='status-card '+grade;
+  document.getElementById('se').textContent=MAP[grade].emoji;
+  document.getElementById('sl').textContent=MAP[grade].label;
+  document.getElementById('sd').textContent=MAP[grade].desc;
+
+  // 원인 배지
+  const reasons=[];
+  if(dg.rank>=4)       reasons.push('미세먼지 '+dg.l+' (PM2.5 '+(dust.pm25??'--')+'㎍/㎥)');
+  else if(dg.rank===3) reasons.push('미세먼지 나쁨 — 실외수업 자제 (PM2.5 '+(dust.pm25??'--')+'㎍/㎥)');
+  if(hasHeatAlert)     reasons.push('폭염경보 발효중 — 야외활동 금지 (35°C↑ 2일)');
+  else if(hasHeatWarn) reasons.push('폭염주의보 발효중 — 야외활동 자제 (33°C↑ 2일)');
+  const wb=document.getElementById('wb');
+  if(reasons.length){
+    wb.style.display='block';
+    wb.style.background=(hasHeatAlert||dg.rank>=4)?'var(--bad)':'var(--caution)';
+    wb.style.color=(hasHeatAlert||dg.rank>=4)?'#fff':'#000';
+    wb.textContent=reasons.join('  /  ');
+  } else wb.style.display='none';
+
+  // 미세먼지 인디케이터
+  document.getElementById('dv').textContent=dust.pm25!=null?dust.pm25:'--';
+  document.getElementById('ds').textContent='㎍/㎥  ·  PM10: '+(dust.pm10??'--')+' ㎍/㎥';
+  const db=document.getElementById('db'); db.textContent=dg.l; db.className='badge '+dg.c;
+
+  // 폭염 인디케이터
+  const hv=document.getElementById('hv'),hs=document.getElementById('hs'),hb=document.getElementById('hb');
+  if(hasHeatAlert){    hv.textContent='경보';   hs.textContent='35°C↑ 2일 지속 → 야외활동 금지'; hb.textContent='금지'; hb.className='badge bg-bad';}
+  else if(hasHeatWarn){hv.textContent='주의보'; hs.textContent='33°C↑ 2일 지속 → 야외활동 자제'; hb.textContent='자제'; hb.className='badge bg-caution';}
+  else{                hv.textContent='없음';   hs.textContent='현재 폭염특보 없음';               hb.textContent='가능'; hb.className='badge bg-good';}
+
+  // 지표
+  document.getElementById('m1').textContent=dust.pm25??'--';
+  document.getElementById('m2').textContent=dust.pm10??'--';
+  document.getElementById('m3').textContent=dust.o3??'--';
+  document.getElementById('m4').textContent=dust.khai??'--';
+  const kl={'1':'좋음','2':'보통','3':'나쁨','4':'매우나쁨'};
+  document.getElementById('m4l').textContent=kl[dust.khaiGrade]||'CAI';
+}
+
+function renderCal(sido, fcstMap, warnList){
+  const grid=document.getElementById('cg'); grid.innerHTML='';
+  const sidoShort=toSidoApi(sido).slice(0,2);
+  const today=new Date();
+  for(let i=0;i<7;i++){
+    const dt=new Date(today); dt.setDate(today.getDate()+i);
+    const isT=(i===0),isTmr=(i===1);
+    const key=`${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+    const ymd=`${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}`;
+    const gs=fcstMap[key]||'';
+    let sg='';
+    const m=gs.match(new RegExp(sidoShort+'[^:]*:\\s*([가-힣 ]+)'));
+    if(m) sg=m[1].trim();
+    else if(gs){ sg=(gs.split(',')[0].split(':')[1]||'').trim(); }
+    const fg=fGrade(sg);
+    const dw=warnList.filter(w=>(w.tmFc||'').slice(0,8)===ymd);
+    const dAlert=dw.some(w=>(w.title||w.wrn||'').includes('경보'));
+    const dWarn=dw.some(w=>(w.title||w.wrn||'').includes('폭염'));
+    const hIcon=dAlert?'🔴':dWarn?'🟠':'🟢';
+    const hText=dAlert?'경보':dWarn?'주의보':'없음';
+    let tmrMsg='';
+    if(isTmr){
+      const msgs=[];
+      if(sg.includes('매우나쁨')) msgs.push('미세먼지 매우나쁨');
+      else if(sg.includes('나쁨')) msgs.push('미세먼지 나쁨');
+      if(dAlert) msgs.push('폭염경보 예고');
+      else if(dWarn) msgs.push('폭염주의보 예고');
+      tmrMsg=msgs.length?msgs.join(' · '):(sg?sg+' 예상':'예보 수집중');
     }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 22px 16px 46px; }
-    header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin: 8px 0 24px; }
-    h1 { margin: 0; font-size: clamp(30px, 5vw, 50px); letter-spacing: -0.05em; font-weight: 900; }
-    .sub { color: var(--muted); margin-top: 8px; font-size: 18px; line-height: 1.5; font-weight: 600; }
-    .pill {
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.8);
-      border-radius: 999px;
-      padding: 10px 16px;
-      font-size: 15px;
-      font-weight: 700;
-      white-space: nowrap;
-      color: var(--muted);
-    }
-    
-    .grid { display: grid; grid-template-columns: 1.5fr 0.5fr; gap: 20px; }
-    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } header { align-items: flex-start; flex-direction: column; } }
-    
-    .card { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid rgba(229,231,235,.8); }
-    
-    .statusCard { 
-      min-height: 500px; 
-      display: flex; 
-      flex-direction: column; 
-      justify-content: space-between;
-      align-items: center;
-      text-align: center;
-    }
-    .statusCenter {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      padding: 30px 0;
-    }
-    .statusIcon { width: 140px; height: 140px; border-radius: 40px; display: grid; place-items: center; font-size: 80px; flex: 0 0 auto; }
-    .statusTitle { font-size: clamp(60px, 8vw, 110px); font-weight: 900; letter-spacing: -0.06em; line-height: 1.1; margin: 24px 0 0; }
-    
-    .possible .statusIcon { background: var(--green-bg); color: var(--green); }
-    .possible .statusTitle { color: var(--green); }
-    .caution .statusIcon { background: var(--yellow-bg); color: var(--yellow); }
-    .caution .statusTitle { color: var(--yellow); }
-    .ban .statusIcon { background: var(--red-bg); color: var(--red); }
-    .ban .statusTitle { color: var(--red); }
-    .unknown .statusIcon { background: var(--blue-bg); color: var(--blue); }
-    .unknown .statusTitle { color: var(--blue); }
-    
-    .reasons { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; width: 100%; align-items: center; }
-    .reason { 
-      border: 1px solid var(--line); 
-      background: #fafafa; 
-      border-radius: 18px; 
-      padding: 16px 24px; 
-      font-weight: 800; 
-      font-size: 24px; 
-      text-align: center;
-      width: 100%;
-      max-width: 500px;
-      color: #1f2937;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    }
-    
-    .metricGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; margin-top: 20px; }
-    @media (max-width: 760px) { .metricGrid { grid-template-columns: repeat(2, 1fr); } }
-    .metric { background: #f9fafb; border: 1px solid var(--line); border-radius: 18px; padding: 16px; text-align: center; }
-    .metric .k { color: var(--muted); font-size: 14px; font-weight: 800; }
-    .metric .v { margin-top: 8px; font-size: 22px; font-weight: 900; letter-spacing: -0.03em; word-break: keep-all; }
-    
-    .controls { display: grid; gap: 12px; }
-    label { display: block; font-size: 14px; font-weight: 800; margin-bottom: 6px; color: #344054; }
-    select, input, button {
-      width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; font: inherit; background: white; font-size: 15px;
-    }
-    button { cursor: pointer; border: 0; background: var(--blue); color: white; font-weight: 900; box-shadow: 0 8px 18px rgba(37, 99, 235, .22); font-size: 16px; margin-top: 4px; }
-    button.secondary { background: #111827; box-shadow: none; }
-    button.ghost { background: white; color: #344054; border: 1px solid var(--line); box-shadow: none; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
-    
-    .sectionTitle { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 16px; }
-    .sectionTitle h2 { margin: 0; font-size: 22px; letter-spacing: -0.04em; }
-    
-    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-    @media (max-width: 760px)
+    const el=document.createElement('div');
+    el.className='cd'+(isT?' today':'')+(isTmr?' tmr':'');
+    el.innerHTML=`
+      ${isT?'<div class="ctag ctag-today">오늘</div>':''}
+      ${isTmr?'<div class="ctag ctag-tmr">📢 내일예고</div>':''}
+      <div class="cdow">${DOW[dt.getDay()]}요일</div>
+      <div class="cdate">${dt.getDate()}</div>
+      <div class="cicon">${hIcon}</div>
+      <div class="cheat"><div class="chdot"></div>${hText}</div>
+      <div class="cdust"><div class="cddot" style="background:${fg.dot}"></div><span style="color:${fg.dot};font-weight:900;">${fg.l}</span></div>
+      ${isTmr?`<div class="ctmrmsg">${tmrMsg}</div>`:''}
+    `;
+    grid.appendChild(el);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════ */
+async function go(){
+  const loc=loadLoc();
+  if(!loc){ return; }
+
+  hideErr();
+  const sc=document.getElementById('sc');
+  sc.className='status-card loading';
+  document.getElementById('se').textContent='⏳';
+  document.getElementById('sl').textContent='조회중';
+  document.getElementById('sd').textContent='데이터를 가져오고 있습니다…';
+  document.getElementById('wb').style.display='none';
+
+  try{
+    const [dust,fcstMap,warnList]=await Promise.all([
+      fetchDust(loc.sido),
+      fetchFcst().catch(()=>({})),
+      fetchWarn(loc.sido).catch(()=>[]),
+    ]);
+    render(dust, warnList||[]);
+    renderCal(loc.sido, fcstMap||{}, warnList||[]);
+  } catch(e){
+    console.error(e);
+    showErr('조회 실패: '+e.message+'\n→ API 키 권한 또는 네트워크를 확인하세요.');
+    sc.className='status-card loading';
+    document.getElementById('se').textContent='❌';
+    document.getElementById('sl').textContent='오류';
+    document.getElementById('sd').textContent='데이터를 불러오지 못했습니다';
+  }
+}
+
+function showErr(m){const b=document.getElementById('err');b.style.display='block';b.textContent=m;}
+function hideErr(){document.getElementById('err').style.display='none';}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', ()=>{
+  const saved=loadLoc();
+  if(saved){
+    applyLoc(saved);
+    go();
+  } else {
+    // 첫 접속 시 모달 자동 열기
+    openModal();
+  }
+});
+setInterval(go, 10*60*1000);
+</script>
+</body>
+</html>
