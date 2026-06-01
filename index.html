@@ -126,6 +126,29 @@
     
     .notice { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 18px; padding: 16px; color: #334155; line-height: 1.55; font-size: 15px; }
     .smallText { font-size: 13px; color: var(--muted); }
+
+    .safetyIntro { margin-top: 14px; color: var(--muted); font-size: 16px; line-height: 1.6; font-weight: 600; word-break: keep-all; }
+    .safetyGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 18px; }
+    @media (max-width: 860px) { .safetyGrid { grid-template-columns: 1fr; } }
+    .safetyBox { border: 1px solid var(--line); border-radius: 20px; padding: 20px; background: #fff; }
+    .safetyBox h3 { margin: 0 0 12px; font-size: 21px; letter-spacing: -0.04em; }
+    .safetyBox p { margin: 0; color: #344054; line-height: 1.65; font-size: 15px; font-weight: 600; word-break: keep-all; }
+    .safetyTable { width: 100%; border-collapse: separate; border-spacing: 0; overflow: hidden; border-radius: 16px; border: 1px solid var(--line); font-size: 14px; }
+    .safetyTable th, .safetyTable td { padding: 11px 10px; border-bottom: 1px solid var(--line); text-align: center; word-break: keep-all; }
+    .safetyTable th { background: #f8fafc; color: #344054; font-weight: 900; }
+    .safetyTable tr:last-child td { border-bottom: 0; }
+    .tag { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 5px 10px; font-weight: 900; font-size: 13px; white-space: nowrap; }
+    .tag.green { background: var(--green-bg); color: var(--green); }
+    .tag.yellow { background: var(--yellow-bg); color: var(--yellow); }
+    .tag.red { background: var(--red-bg); color: var(--red); }
+    .actionList { display: grid; gap: 10px; margin-top: 8px; }
+    .actionItem { display: grid; grid-template-columns: 86px 1fr; gap: 12px; align-items: start; border: 1px solid var(--line); border-radius: 16px; padding: 13px; background: #fafafa; }
+    .actionItem strong { font-size: 15px; }
+    .actionItem span { color: #344054; line-height: 1.55; font-size: 14px; font-weight: 600; word-break: keep-all; }
+    @media (max-width: 560px) { .actionItem { grid-template-columns: 1fr; } .safetyTable { font-size: 13px; } }
+    .studentNote { margin-top: 16px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 18px; padding: 16px; color: #334155; line-height: 1.65; font-size: 14px; word-break: keep-all; }
+    .sourceNote { margin-top: 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
   </style>
 </head>
 <body>
@@ -186,6 +209,67 @@
       <div class="sectionTitle"><h2>최근 7일 기록</h2><span class="smallText">브라우저에 자동 저장</span></div>
       <div class="calendar" id="calendar"></div>
     </section>
+
+    <section class="card" style="margin-top:20px">
+      <div class="sectionTitle"><h2>야외활동 안전 기준</h2><span class="smallText">미세먼지·폭염 함께 확인</span></div>
+      <p class="safetyIntro">
+        이 서비스는 미세먼지와 폭염특보를 함께 확인해 오늘 실외 체육활동, 운동장 놀이, 현장체험활동 등을 해도 되는지 판단하는 보조 자료입니다.
+        화면의 결과가 <b>자제</b> 또는 <b>금지</b>로 표시되면 학생 건강 상태와 학교 상황을 함께 고려하여 실내활동으로 바꾸는 것을 권장합니다.
+      </p>
+
+      <div class="safetyGrid">
+        <div class="safetyBox">
+          <h3>왜 확인해야 하나요?</h3>
+          <p>
+            미세먼지는 눈, 코, 기관지, 피부에 자극을 줄 수 있고 천식·알레르기·아토피·호흡기질환이 있는 학생은 더 조심해야 합니다.
+            폭염은 어지러움, 두통, 탈진 같은 온열질환을 일으킬 수 있으므로 야외활동 전 반드시 확인하는 것이 좋습니다.
+          </p>
+        </div>
+
+        <div class="safetyBox">
+          <h3>폭염특보 기준</h3>
+          <table class="safetyTable" aria-label="폭염특보 기준">
+            <thead><tr><th>구분</th><th>발표 기준</th><th>야외활동</th></tr></thead>
+            <tbody>
+              <tr><td><span class="tag yellow">폭염주의보</span></td><td>일 최고 체감온도 33℃ 이상이 2일 이상 지속 예상 등</td><td>자제</td></tr>
+              <tr><td><span class="tag red">폭염경보</span></td><td>일 최고 체감온도 35℃ 이상이 2일 이상 지속 예상 등</td><td>금지</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="safetyBox">
+          <h3>미세먼지 기준</h3>
+          <table class="safetyTable" aria-label="미세먼지 기준">
+            <thead><tr><th>상태</th><th>PM10</th><th>PM2.5</th><th>야외활동</th></tr></thead>
+            <tbody>
+              <tr><td><span class="tag green">좋음/보통</span></td><td>80 이하</td><td>35 이하</td><td>가능</td></tr>
+              <tr><td><span class="tag yellow">나쁨</span></td><td>81~150</td><td>36~75</td><td>자제</td></tr>
+              <tr><td><span class="tag red">매우나쁨</span></td><td>151 이상</td><td>76 이상</td><td>금지 권장</td></tr>
+              <tr><td><span class="tag red">경보 수준</span></td><td>300 이상</td><td>150 이상</td><td>금지</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="safetyBox">
+          <h3>이럴 때는 이렇게 해요</h3>
+          <div class="actionList">
+            <div class="actionItem"><strong><span class="tag green">가능</span></strong><span>물을 준비하고, 활동 전후 학생 건강 상태를 확인해요.</span></div>
+            <div class="actionItem"><strong><span class="tag yellow">자제</span></strong><span>격한 운동은 줄이고 쉬는 시간을 자주 가져요. 더운 시간대나 공기질이 나쁜 시간대에는 실내활동으로 바꿔요.</span></div>
+            <div class="actionItem"><strong><span class="tag red">금지</span></strong><span>체육활동, 현장학습, 운동회 등은 실내활동으로 대체해요. 창문을 닫고 공기정화장치를 사용해요.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="studentNote">
+        <b>기저질환 학생 안내</b><br>
+        천식, 알레르기, 아토피, 호흡기질환, 심혈관질환 등 미세먼지·오존 관련 기저질환이 있는 학생은 사전에 진단서 또는 의사소견서를 제출하면,
+        우리 지역 미세먼지 또는 오존 농도가 ‘나쁨’ 이상인 날 보호자 사전 연락을 통해 질병결석으로 인정될 수 있습니다.
+      </div>
+      <div class="sourceNote">
+        기준 자료: 학교 미세먼지 대응 안내 자료, 기상청 폭염특보 기준, 교육부·행정안전부 폭염 행동요령을 바탕으로 학생용 문장으로 정리했습니다.
+      </div>
+    </section>
+
   </div>
 
   <script>
@@ -417,10 +501,13 @@
 
     function getSelectedRegion() {
       const settings = loadSettings();
-      const sido = settings.sido || "서울";
-      const sigungu = settings.sigungu || "종로구";
+
+      // 저장된 설정이 아니라 현재 화면에서 선택된 값을 우선 사용합니다.
+      // 따라서 [설정 저장]을 누르지 않아도 [새로고침(다시 조회)]만으로 바로 조회됩니다.
+      const sido = $("sidoSelect")?.value || settings.sido || "서울";
+      const sigungu = $("sigunguSelect")?.value || settings.sigungu || "종로구";
       
-      const sidoData = REGION_DATA[sido];
+      const sidoData = REGION_DATA[sido] || REGION_DATA[settings.sido] || REGION_DATA["서울"];
       const sigunguData = sidoData.list.find(x => x.name === sigungu) || sidoData.list[0];
 
       return {
@@ -556,14 +643,21 @@
 
       if (!related.length) return { raw: "", label: "특보 없음", level: "good", reason: "폭염특보 없음" };
 
-      const joined = related.join("\n");
-      const withoutCancel = joined.replace(/폭염[^\n]*(해제|해제되|해제함)[^\n]*/g, "");
+      const joined = related.join("
+");
+      const withoutCancel = joined.replace(/폭염[^
+]*(해제|해제되|해제함)[^
+]*/g, "");
 
       // 특보현황/통보문 안에서 현재 발효 문구를 우선 판단합니다. 경보가 주의보보다 우선입니다.
-      if (/폭염[^\n]*(경보|WARN|Warning)|경보[^\n]*폭염/.test(withoutCancel)) {
+      if (/폭염[^
+]*(경보|WARN|Warning)|경보[^
+]*폭염/.test(withoutCancel)) {
         return { raw: joined, level: "ban", label: "경보", reason: "폭염경보 발령" };
       }
-      if (/폭염[^\n]*(주의보|Advisory)|주의보[^\n]*폭염/.test(withoutCancel)) {
+      if (/폭염[^
+]*(주의보|Advisory)|주의보[^
+]*폭염/.test(withoutCancel)) {
         return { raw: joined, level: "caution", label: "주의보", reason: "폭염주의보 발령" };
       }
 
