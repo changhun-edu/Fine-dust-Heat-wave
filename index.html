@@ -426,6 +426,23 @@
 <div class="errbox" id="err" style="display:none"></div>
 
 
+<!-- ── LOCATION MODAL ── -->
+<div class="modal-bg" id="modalBg" style="display:none">
+  <div class="modal">
+    <h2>📍 지역 설정</h2>
+    <p>시/도 → 시/군/구 → 읍/면/동 순서로 선택하세요.<br>한 번 설정하면 다음 접속 시 자동으로 불러옵니다.</p>
+    <div class="sel-row">
+      <select id="selSido"   onchange="onSidoChange()"><option value="">시/도 선택</option></select>
+      <select id="selSigun"  onchange="onSigunChange()" disabled><option value="">시/군/구</option></select>
+      <select id="selDong"   onchange="onDongChange()"  disabled><option value="">읍/면/동</option></select>
+    </div>
+    <div class="modal-preview" id="locPreview">선택된 지역 없음</div>
+    <div class="modal-btns">
+      <button class="mbtn cancel"  onclick="closeModal()">취소</button>
+      <button class="mbtn confirm" id="confirmBtn" onclick="confirmLocation()" disabled>이 지역으로 설정</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════
@@ -1162,22 +1179,5 @@ window.addEventListener('DOMContentLoaded', ()=>{
 });
 setInterval(go, 10*60*1000);
 </script>
-<!-- ── LOCATION MODAL ── -->
-<div class="modal-bg" id="modalBg" style="display:none">
-  <div class="modal">
-    <h2>📍 지역 설정</h2>
-    <p>시/도 → 시/군/구 → 읍/면/동 순서로 선택하세요.<br>한 번 설정하면 다음 접속 시 자동으로 불러옵니다.</p>
-    <div class="sel-row">
-      <select id="selSido"   onchange="onSidoChange()"><option value="">시/도 선택</option></select>
-      <select id="selSigun"  onchange="onSigunChange()" disabled><option value="">시/군/구</option></select>
-      <select id="selDong"   onchange="onDongChange()"  disabled><option value="">읍/면/동</option></select>
-    </div>
-    <div class="modal-preview" id="locPreview">선택된 지역 없음</div>
-    <div class="modal-btns">
-      <button class="mbtn cancel"  onclick="closeModal()">취소</button>
-      <button class="mbtn confirm" id="confirmBtn" onclick="confirmLocation()" disabled>이 지역으로 설정</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
