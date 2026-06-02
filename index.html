@@ -89,6 +89,8 @@
     .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:9px;}
     @media(max-width:600px){.cal-grid{grid-template-columns:repeat(4,1fr);}}
     .cd{background:var(--surface2);border:1.5px solid var(--border);border-radius:13px;padding:13px 7px;text-align:center;display:flex;flex-direction:column;gap:5px;position:relative;}
+    .cd.past{opacity:.55;background:rgba(255,255,255,.02);}
+    .ctag-past{background:var(--muted);color:#000;font-size:clamp(8px,.8vw,10px);padding:2px 7px;}
     .cd.today{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.04);}
     .cd.tmr  {border-color:var(--caution);background:rgba(255,184,0,.07);}
     .ctag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);border-radius:999px;font-size:clamp(8px,.85vw,10px);font-weight:900;padding:2px 8px;white-space:nowrap;}
@@ -211,6 +213,27 @@
       border: 1px solid var(--border);
     }
     .loc-btn.set:hover { border-color: var(--good); color: var(--good); }
+
+    /* ── 강수 보조 배지 ── */
+    .rain-badge{
+      margin-top:10px;
+      border-radius:10px;
+      padding:8px 16px;
+      font-size:clamp(12px,1.3vw,16px);
+      font-weight:900;
+      text-align:center;
+      max-width:380px;
+      display:none;
+    }
+    .rain-badge.light { background:rgba(59,130,246,.15); border:1.5px solid #3b82f6; color:#93c5fd; }
+    .rain-badge.moderate{ background:rgba(37,99,235,.18); border:1.5px solid #2563eb; color:#bfdbfe; }
+    .rain-badge.heavy  { background:rgba(29,78,216,.22);  border:1.5px solid #1d4ed8; color:#dbeafe; }
+    .rain-badge.snow   { background:rgba(148,163,184,.15);border:1.5px solid #94a3b8; color:#e2e8f0; }
+
+    /* 달력 - 강수 칸 테두리 강조 */
+    .cd.rain-day  { border-color:#3b82f6 !important; }
+    .cd.snow-day  { border-color:#94a3b8 !important; }
+    .cd.storm-day { border-color:#7c3aed !important; }
   </style>
 </head>
 <body>
@@ -234,6 +257,7 @@
     <div class="s-label" id="sl">대기중</div>
     <div class="s-desc"  id="sd">지역을 설정해주세요</div>
     <div class="warn-badge" id="wb" style="display:none"></div>
+    <div class="rain-badge" id="rb"></div>
   </div>
   <div class="dual-card">
     <h2>🔍 항목별 확인</h2>
@@ -269,12 +293,13 @@
 <!-- ── CALENDAR ── -->
 <div class="cal-section">
   <div class="cal-head">
-    <h2>📅 7일 예보 (미세먼지 + 폭염특보)</h2>
+    <h2>📅 최근 3일 · 오늘 · 향후 3일</h2>
     <div class="legend">
-      <div class="li"><div class="ld" style="background:var(--heat)"></div>폭염특보</div>
+      <div class="li"><div class="ld" style="background:var(--bad)"></div>35°↑ 위험</div>
+      <div class="li"><div class="ld" style="background:var(--caution)"></div>33°↑ 주의</div>
       <div class="li"><div class="ld" style="background:var(--dust)"></div>미세먼지</div>
       <div class="li"><div class="ld" style="background:var(--good)"></div>오늘</div>
-      <div class="li"><div class="ld" style="background:var(--caution)"></div>내일예고</div>
+      <div class="li" style="opacity:.5"><div class="ld" style="background:var(--muted)"></div>과거</div>
     </div>
   </div>
   <div class="cal-grid" id="cg">
@@ -1048,6 +1073,205 @@ const STN = {
   '제주특별자치도':'184'
 };
 
+
+/* ── 시군구 대표 좌표 (Open-Meteo 기온 조회용) ── */
+const SIGUN_COORD = {
+  /* 서울 */
+  '종로구':[37.5730,126.9794],'중구':[37.5636,126.9976],'용산구':[37.5311,126.9810],
+  '성동구':[37.5633,127.0371],'광진구':[37.5385,127.0823],'동대문구':[37.5744,127.0396],
+  '중랑구':[37.6063,127.0927],'성북구':[37.5894,127.0167],'강북구':[37.6397,127.0257],
+  '도봉구':[37.6688,127.0472],'노원구':[37.6542,127.0568],'은평구':[37.6176,126.9227],
+  '서대문구':[37.5791,126.9368],'마포구':[37.5664,126.9014],'양천구':[37.5170,126.8664],
+  '강서구':[37.5509,126.8497],'구로구':[37.4954,126.8874],'금천구':[37.4600,126.9002],
+  '영등포구':[37.5264,126.8964],'동작구':[37.5124,126.9395],'관악구':[37.4784,126.9516],
+  '서초구':[37.4837,127.0324],'강남구':[37.5172,127.0473],'송파구':[37.5145,127.1059],
+  '강동구':[37.5301,127.1238],
+  /* 부산 */
+  '중구':[35.1060,129.0327],'서구':[35.0978,129.0246],'동구':[35.1361,129.0444],
+  '영도구':[35.0912,129.0683],'부산진구':[35.1621,129.0531],'동래구':[35.2047,129.0837],
+  '남구':[35.1364,129.0845],'북구':[35.1974,128.9901],'해운대구':[35.1631,129.1635],
+  '사하구':[35.1046,128.9744],'금정구':[35.2432,129.0921],'강서구':[35.2121,128.9802],
+  '연제구':[35.1763,129.0796],'수영구':[35.1453,129.1133],'사상구':[35.1498,128.9926],
+  '기장군':[35.2447,129.2224],
+  /* 대구 */
+  '중구':[35.8693,128.6062],'동구':[35.8865,128.6351],'서구':[35.8722,128.5594],
+  '남구':[35.8461,128.5972],'북구':[35.8851,128.5828],'수성구':[35.8581,128.6305],
+  '달서구':[35.8298,128.5326],'달성군':[35.7747,128.4316],
+  /* 인천 */
+  '중구':[37.4738,126.6216],'동구':[37.4740,126.6432],'미추홀구':[37.4638,126.6503],
+  '연수구':[37.4100,126.6794],'남동구':[37.4469,126.7313],'부평구':[37.5070,126.7218],
+  '계양구':[37.5375,126.7377],'서구':[37.5451,126.6759],'강화군':[37.7472,126.4878],
+  '옹진군':[37.4463,126.3614],
+  /* 광주 */
+  '동구':[35.1459,126.9231],'서구':[35.1525,126.8896],'남구':[35.1326,126.9024],
+  '북구':[35.1737,126.9119],'광산구':[35.1395,126.7937],
+  /* 대전 */
+  '동구':[36.3122,127.4543],'중구':[36.3252,127.4210],'서구':[36.3551,127.3832],
+  '유성구':[36.3622,127.3562],'대덕구':[36.3467,127.4149],
+  /* 울산 */
+  '중구':[35.5695,129.3322],'남구':[35.5385,129.3295],'동구':[35.5051,129.4163],
+  '북구':[35.5825,129.3612],'울주군':[35.5224,129.1588],
+  /* 세종 */
+  '세종시':[36.4801,127.2890],
+  /* 경기 */
+  '수원시 장안구':[37.3080,127.0096],'수원시 권선구':[37.2588,127.0199],
+  '수원시 팔달구':[37.2874,127.0139],'수원시 영통구':[37.2724,127.0484],
+  '성남시 수정구':[37.4341,127.1520],'성남시 중원구':[37.4380,127.1384],
+  '성남시 분당구':[37.3825,127.1233],'안양시 만안구':[37.3940,126.9567],
+  '안양시 동안구':[37.3905,126.9501],'부천시':[37.5035,126.7660],
+  '광명시':[37.4784,126.8644],'평택시':[36.9921,127.1129],
+  '동두천시':[37.9036,127.0606],'안산시 상록구':[37.3200,126.8302],
+  '안산시 단원구':[37.3215,126.7943],'고양시 덕양구':[37.6341,126.8353],
+  '고양시 일산동구':[37.6580,126.7759],'고양시 일산서구':[37.6713,126.7467],
+  '의정부시':[37.7381,127.0337],'용인시 처인구':[37.2342,127.2020],
+  '용인시 기흥구':[37.2752,127.1146],'용인시 수지구':[37.3215,127.0967],
+  '파주시':[37.7601,126.7801],'이천시':[37.2720,127.4352],'김포시':[37.6152,126.7152],
+  '하남시':[37.5394,127.2148],'광주시':[37.4296,127.2556],'여주시':[37.2975,127.6377],
+  '양평군':[37.4915,127.4874],'가평군':[37.8314,127.5094],'연천군':[38.0961,127.0749],
+  '포천시':[37.8949,127.2004],'양주시':[37.7855,127.0457],'구리시':[37.5960,127.1298],
+  '남양주시':[37.6360,127.2160],'의왕시':[37.3447,126.9687],'군포시':[37.3616,126.9353],
+  '시흥시':[37.3800,126.8031],'화성시':[37.1997,126.8316],'안성시':[37.0078,127.2798],
+  '오산시':[37.1520,127.0779],'과천시':[37.4295,126.9878],
+  /* 강원 */
+  '춘천시':[37.8813,127.7298],'원주시':[37.3422,127.9202],'강릉시':[37.7519,128.8761],
+  '동해시':[37.5246,129.1144],'태백시':[37.1641,128.9855],'속초시':[38.2047,128.5918],
+  '삼척시':[37.4502,129.1653],'홍천군':[37.6975,127.8886],'횡성군':[37.4918,127.9847],
+  '영월군':[37.1836,128.4614],'평창군':[37.3707,128.3910],'정선군':[37.3803,128.6601],
+  '철원군':[38.1468,127.3132],'화천군':[38.1054,127.7084],'양구군':[38.1060,127.9893],
+  '인제군':[38.0695,128.1704],'고성군':[38.3800,128.4672],'양양군':[38.0756,128.6191],
+  /* 충북 */
+  '청주시 상당구':[36.6424,127.4893],'청주시 서원구':[36.6275,127.4452],
+  '청주시 흥덕구':[36.6399,127.4145],'청주시 청원구':[36.6952,127.4917],
+  '충주시':[36.9910,127.9259],'제천시':[37.1325,128.1906],'보은군':[36.4895,127.7294],
+  '옥천군':[36.3062,127.5716],'영동군':[36.1748,127.7759],'증평군':[36.7855,127.5822],
+  '진천군':[36.8558,127.4356],'괴산군':[36.8155,127.7882],'음성군':[36.9398,127.6909],
+  '단양군':[36.9846,128.3654],
+  /* 충남 */
+  '천안시 동남구':[36.8065,127.1521],'천안시 서북구':[36.8368,127.1346],
+  '공주시':[36.4465,127.1190],'보령시':[36.3333,126.6127],'아산시':[36.7898,127.0020],
+  '서산시':[36.7848,126.4503],'논산시':[36.1870,127.0990],'계룡시':[36.2742,127.2488],
+  '당진시':[36.8895,126.6450],'금산군':[36.1087,127.4880],'부여군':[36.2754,126.9097],
+  '서천군':[36.0798,126.6919],'청양군':[36.4591,126.8022],'홍성군':[36.6009,126.6607],
+  '예산군':[36.6799,126.8454],'태안군':[36.7452,126.2975],
+  /* 전북 */
+  '전주시 완산구':[35.8218,127.1480],'전주시 덕진구':[35.8562,127.1400],
+  '군산시':[35.9675,126.7368],'익산시':[35.9484,126.9577],'정읍시':[35.5699,126.8560],
+  '남원시':[35.4163,127.3929],'김제시':[35.8033,126.8801],'완주군':[35.9068,127.1622],
+  '진안군':[35.7914,127.4248],'무주군':[35.9073,127.6609],'장수군':[35.6476,127.5203],
+  '임실군':[35.6176,127.2887],'순창군':[35.3746,127.1372],'고창군':[35.4355,126.7022],
+  '부안군':[35.7317,126.7332],
+  /* 전남 */
+  '목포시':[34.8118,126.3922],'여수시':[34.7604,127.6622],'순천시':[34.9506,127.4872],
+  '나주시':[35.0160,126.7107],'광양시':[34.9406,127.6958],'담양군':[35.3215,126.9884],
+  '곡성군':[35.2820,127.2918],'구례군':[35.2025,127.4625],'고흥군':[34.6111,127.2752],
+  '보성군':[34.7716,127.0795],'화순군':[35.0645,126.9864],'장흥군':[34.6812,126.9073],
+  '강진군':[34.6423,126.7674],'해남군':[34.5739,126.5990],'영암군':[34.8003,126.6971],
+  '무안군':[34.9908,126.4817],'함평군':[35.0648,126.5176],'영광군':[35.2772,126.5122],
+  '장성군':[35.3015,126.7891],'완도군':[34.3105,126.7548],'진도군':[34.4868,126.2637],
+  '신안군':[34.8297,126.1081],
+  /* 경북 */
+  '포항시 남구':[35.9782,129.3606],'포항시 북구':[36.0320,129.3652],
+  '경주시':[35.8562,129.2246],'김천시':[36.1196,128.1139],'안동시':[36.5684,128.7294],
+  '구미시':[36.1195,128.3445],'영주시':[36.8057,128.6236],'영천시':[35.9734,128.9383],
+  '상주시':[36.4108,128.1591],'문경시':[36.5867,128.1863],'경산시':[35.8248,128.7413],
+  '의성군':[36.3523,128.6970],'청송군':[36.4357,129.0566],'영양군':[36.6670,129.1128],
+  '영덕군':[36.4152,129.3650],'청도군':[35.6479,128.7356],'고령군':[35.7279,128.2632],
+  '성주군':[35.9197,128.2830],'칠곡군':[35.9958,128.4011],'예천군':[36.6572,128.4533],
+  '봉화군':[36.8934,128.7322],'울진군':[36.9931,129.4006],'울릉군':[37.4845,130.9057],
+  /* 경남 */
+  '창원시 의창구':[35.2391,128.6198],'창원시 성산구':[35.2252,128.6712],
+  '창원시 마산합포구':[35.1834,128.5742],'창원시 마산회원구':[35.2149,128.5836],
+  '창원시 진해구':[35.1571,128.6966],'진주시':[35.1799,128.1076],
+  '통영시':[34.8545,128.4332],'사천시':[35.0036,128.0644],'김해시':[35.2286,128.8893],
+  '밀양시':[35.5036,128.7463],'거제시':[34.8799,128.6212],'양산시':[35.3351,129.0370],
+  '의령군':[35.3222,128.2616],'함안군':[35.2731,128.4063],'창녕군':[35.5449,128.4917],
+  '고성군':[34.9731,128.3228],'남해군':[34.8376,127.8921],'하동군':[35.0671,127.7516],
+  '산청군':[35.4154,127.8732],'함양군':[35.5195,127.7091],'거창군':[35.6869,127.9096],
+  '합천군':[35.5665,128.1655],
+  /* 제주 */
+  '제주시':[33.4996,126.5312],'서귀포시':[33.2541,126.5600]
+};
+
+/* 시도 대표 좌표 (시군구 매핑 실패 시 fallback) */
+const SIDO_COORD = {
+  '서울특별시':[37.5665,126.9780],'부산광역시':[35.1796,129.0756],
+  '대구광역시':[35.8714,128.6014],'인천광역시':[37.4563,126.7052],
+  '광주광역시':[35.1595,126.8526],'대전광역시':[36.3504,127.3845],
+  '울산광역시':[35.5384,129.3114],'세종특별자치시':[36.4801,127.2890],
+  '경기도':[37.4138,127.5183],'강원특별자치도':[37.8228,128.1555],
+  '충청북도':[36.6357,127.4917],'충청남도':[36.5184,126.8000],
+  '전북특별자치도':[35.7175,127.1530],'전라남도':[34.8679,126.9910],
+  '경상북도':[36.4919,128.8889],'경상남도':[35.4606,128.2132],
+  '제주특별자치도':[33.4996,126.5312]
+};
+
+/* ── WMO weathercode → 이모지 ── */
+const WMO_ICON = {
+  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
+  45:'🌫️', 48:'🌫️',
+  51:'🌦️', 53:'🌦️', 55:'🌧️',
+  61:'🌧️', 63:'🌧️', 65:'🌧️',
+  71:'🌨️', 73:'🌨️', 75:'❄️',
+  80:'🌦️', 81:'🌧️', 82:'⛈️',
+  95:'⛈️', 96:'⛈️', 99:'⛈️',
+};
+
+/* ── WMO 코드 → 강수 등급 ──────────────────────────────
+   none   : 맑음/흐림 계열 (강수 없음)
+   light  : 가벼운 비/이슬비 (51,53,61,63,80,81)
+   moderate: 비 (55,65,82)
+   heavy  : 뇌우/폭우 (95,96,99)
+   snow   : 눈/진눈깨비 (71,73,75)
+──────────────────────────────────────────────────── */
+function rainGrade(code){
+  if(code == null) return null;
+  if([71,73,75,77].includes(code))         return { grade:'snow',    icon:'🌨️', label:'눈',       msg:'눈이 내려요 — 미끄럼에 주의하세요 ❄️' };
+  if([95,96,99].includes(code))            return { grade:'heavy',   icon:'⛈️', label:'뇌우·폭우', msg:'뇌우·폭우 예보 — 외출을 삼가세요 ⛈️' };
+  if([55,65,82].includes(code))            return { grade:'moderate',icon:'🌧️', label:'비',        msg:'비가 예보되어 있어요 — 실내 활동을 권장해요 🌧️' };
+  if([51,53,61,63,80,81].includes(code))   return { grade:'light',   icon:'🌦️', label:'가벼운 비', msg:'가벼운 비가 올 수 있어요 — 우산을 챙기세요 🌂' };
+  return null; // 강수 없음
+}
+function wmoIcon(code){ return WMO_ICON[code] || '🌡️'; }
+
+/* ── Open-Meteo: 과거 3일 + 오늘 + 미래 3일 (총 7일) ── */
+async function fetchTemps(sido, sigun){
+  let coord = null;
+  if(sigun) coord = SIGUN_COORD[sigun];
+  if(!coord) coord = SIDO_COORD[sido];
+  if(!coord) return null;
+  const [lat,lon] = coord;
+
+  // 과거 3일: historical API, 미래 3일: forecast API
+  const today = new Date();
+  const past3 = new Date(today); past3.setDate(today.getDate()-3);
+  const fut3  = new Date(today); fut3.setDate(today.getDate()+3);
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+  // forecast API (오늘 포함 미래) - past_days=3 파라미터로 과거도 함께 반환
+  const url = `https://api.open-meteo.com/v1/forecast`
+    + `?latitude=${lat}&longitude=${lon}`
+    + `&daily=temperature_2m_max,weathercode`
+    + `&timezone=Asia%2FSeoul`
+    + `&past_days=3&forecast_days=4`;  // 과거3 + 오늘+미래3 = 총7일
+
+  try{
+    const r = await fetch(url, {signal: AbortSignal.timeout(6000)});
+    const d = await r.json();
+    const times  = d?.daily?.time               || [];
+    const temps  = d?.daily?.temperature_2m_max || [];
+    const codes  = d?.daily?.weathercode        || [];
+    const map = {};
+    times.forEach((t,i) => {
+      map[t] = { temp: temps[i], code: codes[i] };
+    });
+    return map;
+    // {'2024-06-01': {temp:32.1, code:1}, ...}
+  } catch(e){
+    console.warn('Open-Meteo 오류:', e.message);
+    return null;
+  }
+}
+
 function todayYMD(){ const d=new Date(); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`; }
 function todayDash(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 
@@ -1134,7 +1358,7 @@ function fGrade(s){
 /* ═══════════════════════════════════════════
    RENDER
 ═══════════════════════════════════════════ */
-function render(dust, warnList){
+function render(dust, warnList, tempMap){
   const dg=dGrade(dust.pm25);
   const hasHeatAlert = warnList.some(w=>(w.title||w.wrn||'').includes('폭염경보'));
   const hasHeatWarn  = warnList.some(w=>(w.title||w.wrn||'').includes('폭염주의보'));
@@ -1175,9 +1399,28 @@ function render(dust, warnList){
 
   // 폭염 인디케이터
   const hv=document.getElementById('hv'),hs=document.getElementById('hs'),hb=document.getElementById('hb');
-  if(hasHeatAlert){    hv.textContent='경보';   hs.textContent='35°C↑ 2일 지속 → 야외활동 금지'; hb.textContent='금지'; hb.className='badge bg-bad';}
-  else if(hasHeatWarn){hv.textContent='주의보'; hs.textContent='33°C↑ 2일 지속 → 야외활동 자제'; hb.textContent='자제'; hb.className='badge bg-caution';}
-  else{                hv.textContent='없음';   hs.textContent='현재 폭염특보 없음';               hb.textContent='가능'; hb.className='badge bg-good';}
+  // 오늘 최고기온 + 날씨코드 (Open-Meteo)
+  const todayKey = todayDash();
+  const todayEntry = tempMap ? tempMap[todayKey] : null;
+  const todayMax  = todayEntry?.temp != null ? Math.round(todayEntry.temp) : null;
+  const todayCode = todayEntry?.code ?? null;
+  const tempStr   = todayMax != null ? todayMax + '°C' : '--';
+
+  // 강수 보조 배지
+  const rb = document.getElementById('rb');
+  const rg = rainGrade(todayCode);
+  if(rg){
+    rb.className   = 'rain-badge ' + rg.grade;
+    rb.textContent = rg.icon + ' ' + rg.msg;
+    rb.style.display = 'block';
+  } else {
+    rb.style.display = 'none';
+  }
+
+  hv.textContent = tempStr;
+  if(hasHeatAlert){    hs.textContent='35°C↑ 2일 지속 → 야외활동 금지'; hb.textContent='금지'; hb.className='badge bg-bad';}
+  else if(hasHeatWarn){hs.textContent='33°C↑ 2일 지속 → 야외활동 자제'; hb.textContent='자제'; hb.className='badge bg-caution';}
+  else{                hs.textContent='현재 폭염특보 없음';               hb.textContent='가능'; hb.className='badge bg-good';}
 
   // 지표
   document.getElementById('m1').textContent=dust.pm25??'--';
@@ -1188,46 +1431,95 @@ function render(dust, warnList){
   document.getElementById('m4l').textContent=kl[dust.khaiGrade]||'CAI';
 }
 
-function renderCal(sido, fcstMap, warnList){
-  const grid=document.getElementById('cg'); grid.innerHTML='';
-  const sidoShort=toSidoApi(sido).slice(0,2);
-  const today=new Date();
-  for(let i=0;i<7;i++){
-    const dt=new Date(today); dt.setDate(today.getDate()+i);
-    const isT=(i===0),isTmr=(i===1);
-    const key=`${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
-    const ymd=`${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}`;
-    const gs=fcstMap[key]||'';
-    let sg='';
-    const m=gs.match(new RegExp(sidoShort+'[^:]*:\\s*([가-힣 ]+)'));
-    if(m) sg=m[1].trim();
-    else if(gs){ sg=(gs.split(',')[0].split(':')[1]||'').trim(); }
-    const fg=fGrade(sg);
-    const dw=warnList.filter(w=>(w.tmFc||'').slice(0,8)===ymd);
-    const dAlert=dw.some(w=>(w.title||w.wrn||'').includes('경보'));
-    const dWarn=dw.some(w=>(w.title||w.wrn||'').includes('폭염'));
-    const hIcon=dAlert?'🔴':dWarn?'🟠':'🟢';
-    const hText=dAlert?'경보':dWarn?'주의보':'없음';
-    let tmrMsg='';
-    if(isTmr){
-      const msgs=[];
+function renderCal(sido, fcstMap, warnList, tempMap){
+  const grid = document.getElementById('cg');
+  grid.innerHTML = '';
+  const sidoShort = toSidoApi(sido).slice(0,2);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  // 과거 3일(-3) ~ 오늘(0) ~ 미래 3일(+3) = 총 7칸
+  for(let i=-3; i<=3; i++){
+    const dt  = new Date(today); dt.setDate(today.getDate()+i);
+    const key = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+    const ymd = `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}`;
+    const isPast    = i < 0;
+    const isToday   = i === 0;
+    const isTomorrow= i === 1;
+    const isFuture  = i > 0;
+
+    // ── 기온 + 날씨 아이콘 (Open-Meteo) ──
+    const entry    = tempMap ? tempMap[key] : null;
+    const dayTemp  = entry?.temp != null ? Math.round(entry.temp) : null;
+    const dayCode  = entry?.code ?? null;
+    const dayIcon  = dayCode != null ? wmoIcon(dayCode) : (isPast ? '📅' : '🌡️');
+    const tempColor= dayTemp==null ? 'var(--muted)'
+                   : dayTemp>=35   ? 'var(--bad)'
+                   : dayTemp>=33   ? 'var(--caution)'
+                   :                 'var(--heat)';
+
+    // ── 미세먼지 예보 (에어코리아 - 오늘/내일만 실데이터) ──
+    const gs  = fcstMap[key] || '';
+    let sg = '';
+    const m = gs.match(new RegExp(sidoShort + '[^:]*:\\s*([가-힣 ]+)'));
+    if(m) sg = m[1].trim();
+    else if(gs){ sg = (gs.split(',')[0].split(':')[1]||'').trim(); }
+    const fg = sg ? fGrade(sg) : null;
+
+    // ── 폭염특보 (기상청 - 당일 발효분) ──
+    const dw     = warnList.filter(w=>(w.tmFc||'').slice(0,8)===ymd);
+    const dAlert = dw.some(w=>(w.title||w.wrn||'').includes('폭염경보'));
+    const dWarn  = dw.some(w=>(w.title||w.wrn||'').includes('폭염주의보'));
+    const warnIcon = dAlert ? '🔴' : dWarn ? '🟠' : '';
+
+    // ── 내일 예고 메시지 ──
+    let tmrMsg = '';
+    if(isTomorrow){
+      const msgs = [];
       if(sg.includes('매우나쁨')) msgs.push('미세먼지 매우나쁨');
       else if(sg.includes('나쁨')) msgs.push('미세먼지 나쁨');
-      if(dAlert) msgs.push('폭염경보 예고');
+      if(dAlert)     msgs.push('폭염경보 예고');
       else if(dWarn) msgs.push('폭염주의보 예고');
-      tmrMsg=msgs.length?msgs.join(' · '):(sg?sg+' 예상':'예보 수집중');
+      else if(dayTemp!=null && dayTemp>=35) msgs.push('폭염 주의');
+      tmrMsg = msgs.length ? msgs.join(' · ') : (sg ? sg+' 예상' : '');
     }
-    const el=document.createElement('div');
-    el.className='cd'+(isT?' today':'')+(isTmr?' tmr':'');
-    el.innerHTML=`
-      ${isT?'<div class="ctag ctag-today">오늘</div>':''}
-      ${isTmr?'<div class="ctag ctag-tmr">📢 내일예고</div>':''}
+
+    // ── 강수 등급 ──
+    const rg = rainGrade(dayCode);
+
+    // ── 카드 클래스 ──
+    let cls = 'cd';
+    if(isPast)     cls += ' past';
+    if(isToday)    cls += ' today';
+    if(isTomorrow) cls += ' tmr';
+    // 강수 테두리 (과거 제외, 오늘/미래만)
+    if(!isPast && rg){
+      if(rg.grade==='snow')         cls += ' snow-day';
+      else if(rg.grade==='heavy')   cls += ' storm-day';
+      else if(rg.grade==='moderate'||rg.grade==='light') cls += ' rain-day';
+    }
+
+    const el = document.createElement('div');
+    el.className = cls;
+    el.innerHTML = `
+      ${isToday    ? '<div class="ctag ctag-today">오늘</div>'     : ''}
+      ${isTomorrow ? '<div class="ctag ctag-tmr">📢 내일</div>'    : ''}
+      ${isPast     ? '<div class="ctag ctag-past">과거</div>'      : ''}
       <div class="cdow">${DOW[dt.getDay()]}요일</div>
       <div class="cdate">${dt.getDate()}</div>
-      <div class="cicon">${hIcon}</div>
-      <div class="cheat"><div class="chdot"></div>${hText}</div>
-      <div class="cdust"><div class="cddot" style="background:${fg.dot}"></div><span style="color:${fg.dot};font-weight:900;">${fg.l}</span></div>
-      ${isTmr?`<div class="ctmrmsg">${tmrMsg}</div>`:''}
+      <div class="cicon">${dayIcon}</div>
+      <div class="cheat">
+        <span style="font-size:clamp(15px,1.8vw,22px);font-weight:900;color:${tempColor};">
+          ${dayTemp!=null ? dayTemp+'°' : '--°'}
+        </span>
+        ${warnIcon ? `<span style="font-size:12px;margin-left:3px;">${warnIcon}</span>` : ''}
+      </div>
+      ${fg ? `<div class="cdust">
+        <div class="cddot" style="background:${fg.dot}"></div>
+        <span style="color:${fg.dot};font-weight:900;font-size:clamp(9px,.9vw,12px);">${fg.l}</span>
+      </div>` : `<div style="height:18px;"></div>`}
+      ${isTomorrow && tmrMsg ? `<div class="ctmrmsg">${tmrMsg}</div>` : ''}
+      ${!isPast && rg ? `<div style="font-size:clamp(9px,.85vw,11px);font-weight:800;color:#93c5fd;margin-top:2px;line-height:1.3;">${rg.icon} ${rg.label}</div>` : ''}
     `;
     grid.appendChild(el);
   }
@@ -1249,13 +1541,14 @@ async function go(){
   document.getElementById('wb').style.display='none';
 
   try{
-    const [dust,fcstMap,warnList]=await Promise.all([
+    const [dust,fcstMap,warnList,tempMap]=await Promise.all([
       fetchDust(loc.sido),
       fetchFcst().catch(()=>({})),
       fetchWarn(loc.sido).catch(()=>[]),
+      fetchTemps(loc.sido, loc.sigun).catch(()=>null),
     ]);
-    render(dust, warnList||[]);
-    renderCal(loc.sido, fcstMap||{}, warnList||[]);
+    render(dust, warnList||[], tempMap);
+    renderCal(loc.sido, fcstMap||{}, warnList||[], tempMap||{});
   } catch(e){
     console.error(e);
     const msg = e.message.includes('프록시') || e.message.includes('API 연결')
