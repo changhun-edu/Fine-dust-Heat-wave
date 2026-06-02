@@ -18,6 +18,7 @@
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:22px 26px 34px;}
+    .page-wrap{max-width:1600px;margin:0 auto;}
 
     /* ── HEADER ── */
     .header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;gap:14px;flex-wrap:wrap;}
@@ -31,11 +32,11 @@
     .loc-btn.set:hover{border-color:var(--good);color:var(--good);}
 
     /* ── MAIN GRID ── */
-    .main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    .main-grid{display:grid;grid-template-columns:minmax(300px,560px) 1fr;gap:16px;margin-bottom:16px;align-items:start;}
     @media(max-width:820px){.main-grid{grid-template-columns:1fr;}}
 
     /* ── STATUS CARD ── */
-    .status-card{border-radius:var(--r);padding:30px 26px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:360px;border:2px solid transparent;transition:all .4s;}
+    .status-card{border-radius:var(--r);padding:30px 26px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;border:2px solid transparent;transition:all .4s;height:100%;}
     .status-card.good   {background:var(--good-bg);   border-color:var(--good);}
     .status-card.caution{background:var(--caution-bg);border-color:var(--caution);}
     .status-card.bad    {background:var(--bad-bg);    border-color:var(--bad);}
@@ -51,9 +52,15 @@
     .warn-badge{margin-top:12px;border-radius:10px;padding:7px 16px;font-size:clamp(12px,1.3vw,16px);font-weight:900;text-align:center;max-width:380px;background:var(--bad);color:#fff;}
 
     /* ── DUAL INDICATORS ── */
-    .dual-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px 18px;display:flex;flex-direction:column;gap:12px;min-height:360px;justify-content:center;}
+    .dual-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px 18px;display:flex;flex-direction:column;gap:12px;justify-content:center;height:100%;}
     .dual-card h2{font-size:clamp(12px,1.3vw,16px);font-weight:900;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px;}
-    .indicator{border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;flex:1;}
+    /* 넓은 화면: 인디케이터 가로 2단 */
+    .ind-row{display:flex;flex-direction:column;gap:12px;flex:1;}
+    @media(min-width:1100px){
+      .ind-row{flex-direction:row;}
+      .ind-row .indicator{flex:1;}
+    }
+    .indicator{border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;}
     .indicator.dust{background:var(--dust-bg);border:1.5px solid var(--dust);}
     .indicator.heat{background:var(--heat-bg);border:1.5px solid var(--heat);}
     .ind-icon{font-size:clamp(38px,5vw,62px);flex-shrink:0;line-height:1;}
@@ -238,6 +245,7 @@
 </head>
 <body>
 
+<div class="page-wrap">
 <!-- ── HEADER ── -->
 <div class="header">
   <div>
@@ -261,23 +269,25 @@
   </div>
   <div class="dual-card">
     <h2>🔍 항목별 확인</h2>
-    <div class="indicator dust">
-      <div class="ind-icon">😷</div>
-      <div class="ind-body">
-        <div class="ind-title">미세먼지 (PM2.5)</div>
-        <div class="ind-val" id="dv">--</div>
-        <div class="ind-sub" id="ds">㎍/㎥</div>
+    <div class="ind-row">
+      <div class="indicator dust">
+        <div class="ind-icon">😷</div>
+        <div class="ind-body">
+          <div class="ind-title">미세먼지 (PM2.5)</div>
+          <div class="ind-val" id="dv">--</div>
+          <div class="ind-sub" id="ds">㎍/㎥</div>
+        </div>
+        <div class="badge bg-muted" id="db">--</div>
       </div>
-      <div class="badge bg-muted" id="db">--</div>
-    </div>
-    <div class="indicator heat">
-      <div class="ind-icon">🌡️</div>
-      <div class="ind-body">
-        <div class="ind-title">폭염 특보 현황</div>
-        <div class="ind-val" id="hv">--</div>
-        <div class="ind-sub" id="hs">특보 정보</div>
+      <div class="indicator heat">
+        <div class="ind-icon">🌡️</div>
+        <div class="ind-body">
+          <div class="ind-title">폭염 특보 현황</div>
+          <div class="ind-val" id="hv">--</div>
+          <div class="ind-sub" id="hs">특보 정보</div>
+        </div>
+        <div class="badge bg-muted" id="hb">--</div>
       </div>
-      <div class="badge bg-muted" id="hb">--</div>
     </div>
   </div>
 </div>
@@ -471,6 +481,8 @@
 
 <div class="errbox" id="err" style="display:none"></div>
 
+
+</div><!-- /page-wrap -->
 
 <!-- ── LOCATION MODAL ── -->
 <div class="modal-bg" id="modalBg" style="display:none">
