@@ -241,6 +241,8 @@
     .cd.rain-day  { border-color:#3b82f6 !important; }
     .cd.snow-day  { border-color:#94a3b8 !important; }
     .cd.storm-day { border-color:#7c3aed !important; }
+
+    .credit{text-align:right;margin-top:18px;padding-bottom:6px;font-size:11px;font-weight:700;color:rgba(255,255,255,.15);letter-spacing:0.04em;user-select:none;}
   </style>
 </head>
 <body>
@@ -482,6 +484,7 @@
 <div class="errbox" id="err" style="display:none"></div>
 
 
+<div class="credit">만든이 2026 최창훈</div>
 </div><!-- /page-wrap -->
 
 <!-- ── LOCATION MODAL ── -->
@@ -528,11 +531,7 @@
    CONFIG
 ═══════════════════════════════════════════ */
 const KEY   = '9e644bbc9679873e697c8e70127dc6c6d1073968698887cef1fc34aba8e0a36c';
-// CORS 프록시 목록 (순서대로 시도)
-const PROXIES = [
-  'https://api.allorigins.win/get?url=',
-  'https://corsproxy.io/?',
-];
+// 프록시 목록은 apiFetch 내부 PROXY_LIST 참조
 const LS_KEY = 'outdoor_loc_v2';
 
 /* 에어코리아 sidoName 매핑 (시도코드 → API 파라미터) */
@@ -1040,34 +1039,56 @@ function applyLoc(loc){
    API
 ═══════════════════════════════════════════ */
 async function apiFetch(url){
-  let lastErr;
-  for(const proxy of PROXIES){
+  // 프록시별 응답 파싱 방식이 다름
+  const PROXY_LIST = [
+    {
+      // allorigins: {contents: "...json..."}
+      build: u => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u),
+      parse: async r => { const w=await r.json(); const raw=w?.contents; if(!raw) throw new Error('빈응답'); return JSON.parse(raw); }
+    },
+    {
+      // corsproxy.io: 직접 JSON
+      build: u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+      parse: async r => r.json()
+    },
+    {
+      // thingproxy: 직접 JSON
+      build: u => 'https://thingproxy.freeboard.io/fetch/' + u,
+      parse: async r => r.json()
+    },
+    {
+      // jsonp.afeld.me: 직접 JSON
+      build: u => 'https://jsonp.afeld.me/?url=' + encodeURIComponent(u),
+      parse: async r => r.json()
+    },
+  ];
+
+  let lastMsg = '';
+  for(const p of PROXY_LIST){
     try{
-      const isAllOrigins = proxy.includes('allorigins');
-      const r = await fetch(proxy + encodeURIComponent(url), {signal: AbortSignal.timeout(8000)});
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      if(isAllOrigins){
-        const w = await r.json();
-        // allorigins: {contents: "..."}
-        const raw = w.contents;
-        if(!raw) throw new Error('빈 응답');
-        return JSON.parse(raw);
-      } else {
-        // corsproxy.io: 직접 JSON 반환
-        return await r.json();
-      }
+      const r = await fetch(p.build(url), {signal: AbortSignal.timeout(7000)});
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await p.parse(r);
+      if(!data) throw new Error('파싱 실패');
+      return data;
     } catch(e){
-      lastErr = e;
-      console.warn('프록시 실패:', proxy, e.message);
+      lastMsg = e.message;
+      console.warn('프록시 실패 (' + p.build(url).split('/')[2] + '):', e.message);
     }
   }
-  // 프록시 모두 실패 시 직접 호출 시도 (로컬 서버 환경용)
+
+  // 모든 프록시 실패 → 직접 호출 (학교 서버 등 CORS 허용 환경)
   try{
-    const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
-    if(!r.ok) throw new Error('HTTP '+r.status);
+    const r = await fetch(url, {signal: AbortSignal.timeout(7000)});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
     return await r.json();
   } catch(e){
-    throw new Error('API 연결 실패 (모든 프록시 차단됨). 로컬 서버에서 실행하거나 네트워크를 확인하세요.');
+    throw new Error(
+      '데이터를 불러오지 못했습니다.\n' +
+      '원인: 학교 네트워크가 외부 API 접근을 차단하고 있을 수 있습니다.\n' +
+      '해결: 관리자에게 apis.data.go.kr 도메인 허용을 요청하거나, ' +
+      '로컬 프록시 서버를 설치해주세요.\n(마지막 오류: ' + lastMsg + ')'
+    );
   }
 }
 
@@ -1598,10 +1619,7 @@ async function go(){
     renderCal(loc.sido, fcstMap||{}, warnList||[], tempMap||{});
   } catch(e){
     console.error(e);
-    const msg = e.message.includes('프록시') || e.message.includes('API 연결')
-      ? '⚠️ 네트워크 차단: 학교 방화벽이 외부 API를 막고 있을 수 있습니다.\n로컬 서버(Node.js 등)에서 실행하거나 네트워크 관리자에게 문의하세요.\n\n상세: ' + e.message
-      : '조회 실패: ' + e.message;
-    showErr(msg);
+    showErr('⚠️ ' + e.message);
     sc.className='status-card loading';
     document.getElementById('se').textContent='❌';
     document.getElementById('sl').textContent='오류';
