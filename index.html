@@ -1385,10 +1385,45 @@ function render(dust, warnList, tempMap){
     caution:{emoji:'⚠️', label:'자제', desc:'야외활동을 자제하세요. 꼭 필요하면 마스크 착용! 😷'},
     bad:    {emoji:'🚫', label:'금지', desc:'실외수업 금지! 실내 활동으로 대체하세요 🏠'},
   };
+
+  /* ── 날씨 조합 설명 문구 ───────────────────────────────
+     판정(가능/자제/금지)은 그대로, 설명 문구만 날씨에 맞게 교체
+  ─────────────────────────────────────────────────── */
+  let desc = MAP[grade].desc;
+  if(rg){
+    if(grade === 'good'){
+      // 가능인데 비·눈
+      if(rg.grade === 'snow')
+        desc = '눈이 내려요! 미끄럼에 조심하며 활동해요 ❄️';
+      else if(rg.grade === 'heavy')
+        desc = '뇌우·폭우 예보예요. 야외 활동은 삼가세요 ⛈️';
+      else if(rg.grade === 'moderate')
+        desc = '비가 와요. 실내 활동도 좋아요 🌧️';
+      else if(rg.grade === 'light')
+        desc = '야외활동은 가능하지만 비가 올 수 있어요. 우산을 챙기세요 🌂';
+    } else if(grade === 'caution'){
+      // 자제인데 비·눈까지 겹침
+      if(rg.grade === 'snow')
+        desc = '미세먼지도 나쁘고 눈도 내려요. 오늘은 실내가 좋아요 😷❄️';
+      else if(rg.grade === 'heavy')
+        desc = '미세먼지·폭염에 뇌우까지! 반드시 실내에 있어요 ⛈️😷';
+      else
+        desc = '미세먼지도 나쁘고 비도 와요. 오늘은 실내가 좋겠어요 😷🌧️';
+    } else if(grade === 'bad'){
+      // 금지인데 비·눈까지 겹침
+      if(rg.grade === 'snow')
+        desc = '실외수업 금지! 눈도 내려요. 따뜻하게 실내에 있어요 🏠❄️';
+      else if(rg.grade === 'heavy')
+        desc = '실외수업 금지! 뇌우까지 예보됐어요. 절대 밖에 나가지 마세요 🚫⛈️';
+      else
+        desc = '실외수업 금지! 비도 와요. 실내 활동으로 대체하세요 🏠🌧️';
+    }
+  }
+
   document.getElementById('sc').className='status-card '+grade;
   document.getElementById('se').textContent=MAP[grade].emoji;
   document.getElementById('sl').textContent=MAP[grade].label;
-  document.getElementById('sd').textContent=MAP[grade].desc;
+  document.getElementById('sd').textContent=desc;
 
   // 원인 배지
   const reasons=[];
