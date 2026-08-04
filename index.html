@@ -12,8 +12,10 @@
       --good:#00d084; --good-bg:rgba(0,208,132,0.12);
       --caution:#ffb800; --caution-bg:rgba(255,184,0,0.12);
       --bad:#ff4444; --bad-bg:rgba(255,68,68,0.12);
+      --critical:#ff2d55; --critical-bg:linear-gradient(160deg,#7f1d1d,#3b0510);
       --dust:#a78bfa; --dust-bg:rgba(167,139,250,0.14);
       --heat:#fb923c; --heat-bg:rgba(251,146,60,0.14);
+      --night:#22d3ee; --night-bg:rgba(34,211,238,0.12);
       --text:#f0f2f8; --muted:#8b92a8; --r:20px;
     }
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -40,6 +42,11 @@
     .status-card.good   {background:var(--good-bg);   border-color:var(--good);}
     .status-card.caution{background:var(--caution-bg);border-color:var(--caution);}
     .status-card.bad    {background:var(--bad-bg);    border-color:var(--bad);}
+    .status-card.critical{background:var(--critical-bg);border-color:var(--critical);border-width:3px;animation:critPulse 1.6s ease-in-out infinite;}
+    @keyframes critPulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(255,45,85,.45);}
+      50%    {box-shadow:0 0 34px 6px rgba(255,45,85,.30);}
+    }
     .status-card.loading{background:var(--surface);   border-color:var(--border);}
     .s-emoji{font-size:clamp(70px,9vw,140px);line-height:1;animation:fl 3s ease-in-out infinite;}
     @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
@@ -47,6 +54,7 @@
     .status-card.good    .s-label{color:var(--good);}
     .status-card.caution .s-label{color:var(--caution);}
     .status-card.bad     .s-label{color:var(--bad);}
+    .status-card.critical .s-label{color:#fff;font-size:clamp(42px,6.2vw,100px);word-break:keep-all;text-shadow:0 0 22px rgba(255,45,85,.75);}
     .status-card.loading .s-label{color:var(--muted);}
     .s-desc{margin-top:12px;font-size:clamp(16px,2.2vw,32px);font-weight:700;color:rgba(255,255,255,.65);text-align:center;line-height:1.4;white-space:pre-line;}
     .warn-badge{margin-top:12px;border-radius:10px;padding:7px 16px;font-size:clamp(13px,1.5vw,20px);font-weight:900;text-align:center;max-width:480px;background:var(--bad);color:#fff;}
@@ -57,25 +65,30 @@
     /* 넓은 화면: 인디케이터 가로 2단 */
     .ind-row{display:flex;flex-direction:column;gap:12px;flex:1;}
     @media(min-width:1100px){
-      .ind-row{flex-direction:row;}
-      .ind-row .indicator{flex:1;}
+      .ind-row{flex-direction:row;flex-wrap:wrap;}
+      .ind-row .indicator{flex:1 1 250px;}
     }
     .indicator{border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;}
     .indicator.dust{background:var(--dust-bg);border:1.5px solid var(--dust);}
     .indicator.heat{background:var(--heat-bg);border:1.5px solid var(--heat);}
+    .indicator.night{background:var(--night-bg);border:1.5px solid var(--night);}
     .ind-icon{font-size:clamp(44px,5.5vw,78px);flex-shrink:0;line-height:1;}
     .ind-body{flex:1;}
     .ind-title{font-size:clamp(14px,1.6vw,22px);font-weight:900;letter-spacing:.02em;}
     .indicator.dust .ind-title{color:var(--dust);}
     .indicator.heat .ind-title{color:var(--heat);}
+    .indicator.night .ind-title{color:var(--night);}
     .ind-val{font-size:clamp(36px,5vw,72px);font-weight:900;letter-spacing:-0.04em;line-height:1.05;margin-top:3px;color:#fff;}
     .ind-sub{font-size:clamp(12px,1.3vw,17px);font-weight:700;margin-top:2px;opacity:.75;}
     .indicator.dust .ind-sub{color:var(--dust);}
     .indicator.heat .ind-sub{color:var(--heat);}
+    .indicator.night .ind-sub{color:var(--night);}
     .badge{padding:8px 18px;border-radius:999px;font-size:clamp(14px,1.5vw,20px);font-weight:900;white-space:nowrap;flex-shrink:0;}
     .bg-good   {background:var(--good);   color:#000;}
     .bg-caution{background:var(--caution);color:#000;}
     .bg-bad    {background:var(--bad);    color:#fff;}
+    .bg-critical{background:var(--critical);color:#fff;box-shadow:0 0 16px rgba(255,45,85,.55);}
+    .bg-night  {background:var(--night);  color:#00232b;}
     .bg-muted  {background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
 
     /* ── METRICS ── */
@@ -169,14 +182,39 @@
     .td-good    { color: var(--good); }
     .td-caution { color: var(--caution); }
     .td-bad     { color: var(--bad); }
+    .td-critical{ color: #fff; background: rgba(255,45,85,.18); }
+    .td-night   { color: var(--night); }
+
+    /* 열대야 다음날 아침 안내 띠 */
+    .night-notice{
+      margin-top:14px;background:var(--night-bg);border:1.5px solid var(--night);
+      border-radius:14px;padding:14px 18px;display:none;
+    }
+    .night-notice .nn-title{color:var(--night);font-weight:900;font-size:clamp(13px,1.4vw,17px);margin-bottom:6px;}
+    .night-notice .nn-body {color:rgba(255,255,255,.85);font-weight:700;font-size:clamp(12px,1.2vw,15px);line-height:1.65;}
+
+    /* 폭염 기본 행동수칙 상시 띠 */
+    .basic-rules{
+      display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;
+      background:linear-gradient(135deg,rgba(251,146,60,.14),rgba(34,211,238,.10));
+      border:1.5px solid rgba(251,146,60,.45);border-radius:16px;padding:16px 20px;
+    }
+    .br-item{display:flex;align-items:center;gap:8px;font-size:clamp(13px,1.5vw,19px);font-weight:900;color:#fff;}
+    .br-item span.ico{font-size:clamp(20px,2.4vw,30px);}
+    .br-sep{color:var(--muted);font-weight:900;}
 
     /* 행동요령 카드 */
-    .action-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    .action-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+    @media(max-width:1150px){ .action-grid{ grid-template-columns:repeat(2,1fr); } }
     @media(max-width:700px){ .action-grid{ grid-template-columns:1fr; } }
     .action-card { border-radius: 16px; padding: 18px 16px; }
     .action-card.good    { background: var(--good-bg);    border: 1.5px solid var(--good); }
     .action-card.caution { background: var(--caution-bg); border: 1.5px solid var(--caution); }
     .action-card.bad     { background: var(--bad-bg);     border: 1.5px solid var(--bad); }
+    .action-card.critical{ background: var(--critical-bg);border: 2px solid var(--critical); }
+    .action-card.critical .action-title { color: #fff; text-shadow:0 0 14px rgba(255,45,85,.7); }
+    .action-card.critical .action-list li { color: rgba(255,255,255,.9); }
+    .step-tag{ display:inline-block;background:var(--critical);color:#fff;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:900;margin-right:6px; }
     .action-title { font-size: clamp(18px,2.2vw,28px); font-weight: 900; letter-spacing: -0.04em; margin-bottom: 10px; }
     .action-card.good    .action-title { color: var(--good); }
     .action-card.caution .action-title { color: var(--caution); }
@@ -238,6 +276,7 @@
     .rain-badge.snow   { background:rgba(148,163,184,.15);border:1.5px solid #94a3b8; color:#e2e8f0; }
 
     /* 달력 - 강수 칸 테두리 강조 */
+    .cd.crit-day  { border-color:var(--critical) !important; background:rgba(255,45,85,.13); }
     .cd.rain-day  { border-color:#3b82f6 !important; }
     .cd.snow-day  { border-color:#94a3b8 !important; }
     .cd.storm-day { border-color:#7c3aed !important; }
@@ -290,8 +329,23 @@
         </div>
         <div class="badge bg-muted" id="hb">--</div>
       </div>
+      <div class="indicator night">
+        <div class="ind-icon">🌙</div>
+        <div class="ind-body">
+          <div class="ind-title">열대야 (밤최저기온)</div>
+          <div class="ind-val" id="nv">--</div>
+          <div class="ind-sub" id="ns">오늘 밤 예상</div>
+        </div>
+        <div class="badge bg-muted" id="nb">--</div>
+      </div>
     </div>
   </div>
+</div>
+
+<!-- ── 열대야 다음날 아침 안내 ── -->
+<div class="night-notice" id="nn">
+  <div class="nn-title">🌙 열대야주의보 발효 — 오늘 아침 학교에서 이렇게 해주세요</div>
+  <div class="nn-body" id="nnBody"></div>
 </div>
 
 <!-- ── METRICS ── -->
@@ -307,8 +361,10 @@
   <div class="cal-head">
     <h2>📅 최근 3일 · 오늘 · 향후 3일</h2>
     <div class="legend">
-      <div class="li"><div class="ld" style="background:var(--bad)"></div>35°↑ 위험</div>
-      <div class="li"><div class="ld" style="background:var(--caution)"></div>33°↑ 주의</div>
+      <div class="li"><div class="ld" style="background:var(--critical)"></div>체감 38°↑ 중대경보급</div>
+      <div class="li"><div class="ld" style="background:var(--bad)"></div>체감 35°↑ 위험</div>
+      <div class="li"><div class="ld" style="background:var(--caution)"></div>체감 33°↑ 주의</div>
+      <div class="li"><div class="ld" style="background:var(--night)"></div>열대야</div>
       <div class="li"><div class="ld" style="background:var(--dust)"></div>미세먼지</div>
       <div class="li"><div class="ld" style="background:var(--good)"></div>오늘</div>
       <div class="li" style="opacity:.5"><div class="ld" style="background:var(--muted)"></div>과거</div>
@@ -371,12 +427,12 @@
 
       <!-- 폭염 기준표 -->
       <div>
-        <div style="font-size:clamp(12px,1.3vw,15px);font-weight:900;color:var(--heat);margin-bottom:10px;">🌡️ 폭염 특보 기준</div>
+        <div style="font-size:clamp(12px,1.3vw,15px);font-weight:900;color:var(--heat);margin-bottom:10px;">🌡️ 폭염 특보 기준 <span style="color:var(--critical);">(2026년 개편)</span></div>
         <table class="guide-table">
           <thead>
             <tr>
               <th>구분</th>
-              <th>기준</th>
+              <th>기준 (일최고체감온도)</th>
               <th>실외수업</th>
             </tr>
           </thead>
@@ -388,18 +444,30 @@
             </tr>
             <tr>
               <td class="td-caution" style="font-weight:900;">폭염주의보</td>
-              <td style="color:rgba(255,255,255,.7);font-size:12px;">33°C 이상<br>2일 지속</td>
+              <td style="color:rgba(255,255,255,.7);font-size:12px;">33°C 이상<br>2일 이상 지속</td>
               <td class="td-caution">⚠️ 자제</td>
             </tr>
             <tr>
               <td class="td-bad" style="font-weight:900;">폭염경보</td>
-              <td style="color:rgba(255,255,255,.7);font-size:12px;">35°C 이상<br>2일 지속</td>
+              <td style="color:rgba(255,255,255,.7);font-size:12px;">35°C 이상<br>2일 이상 지속</td>
               <td class="td-bad">🚫 금지</td>
+            </tr>
+            <tr>
+              <td class="td-critical" style="font-weight:900;">폭염중대경보<br><span style="font-size:10px;color:var(--critical);">★신설</span></td>
+              <td class="td-critical" style="font-size:12px;">체감 <b>38°C</b> 또는 기온 <b>39°C</b> 이상<br><b style="color:var(--critical);">하루만 예상되어도 발표</b></td>
+              <td class="td-critical">🚨 즉시 중단</td>
+            </tr>
+            <tr>
+              <td class="td-night" style="font-weight:900;">열대야주의보<br><span style="font-size:10px;">★신설</span></td>
+              <td style="color:rgba(255,255,255,.7);font-size:12px;">밤최저기온 <b>25°C</b> 이상<br><span style="color:var(--night);">대도시·해안 26°C / 제주 27°C</span></td>
+              <td class="td-night">🌙 아침 관리</td>
             </tr>
           </tbody>
         </table>
         <div style="margin-top:10px;font-size:clamp(10px,1vw,12px);color:var(--muted);font-weight:700;line-height:1.6;">
-          ※ 미세먼지와 폭염이 동시에 발생한 경우<br>더 나쁜 기준을 적용합니다.
+          ※ 미세먼지와 폭염이 동시에 발생한 경우<br>더 나쁜 기준을 적용합니다.<br>
+          ※ <b style="color:var(--critical);">폭염중대경보</b>는 폭염경보 수준 지역에서 발표되는 최상위 단계로,
+          <b>2일 지속 조건 없이</b> 하루만 예상되어도 발표됩니다.
         </div>
       </div>
     </div>
@@ -446,6 +514,36 @@
         </ul>
       </div>
 
+      <div class="action-card critical">
+        <div class="action-title">🚨 즉시 중단</div>
+        <div style="font-size:clamp(11px,1.1vw,13px);font-weight:800;color:var(--critical);margin-bottom:9px;">폭염중대경보 — 생존을 위한 3단계</div>
+        <ul class="action-list">
+          <li><span class="step-tag">중단</span>모든 야외수업·운동장 개방 즉시 중단</li>
+          <li><span class="step-tag">중단</span>실외 방과후·돌봄 프로그램 중지, 등하교 지도 최소화</li>
+          <li><span class="step-tag">이동</span>냉방 교실·도서실 등 실내로 이동, 학급별 물 제공</li>
+          <li><span class="step-tag">이동</span>통학버스 대기도 실내에서, 그늘 아닌 냉방시설로</li>
+          <li><span class="step-tag">확인</span>기저질환·비만·복용약 학생 상태 개별 확인</li>
+          <li><span class="step-tag">확인</span>돌봄교실·하교 후 혼자 있는 학생 안부 확인</li>
+          <li>필요 시 단축수업·등하교 시간 조정 즉시 검토</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2-1. 폭염 기본 행동수칙 (상시) -->
+  <div class="guide-block">
+    <h3>💧 폭염 기본 행동수칙 — 물 · 그늘 · 휴식</h3>
+    <div class="basic-rules">
+      <div class="br-item"><span class="ico">💧</span>규칙적으로 수분 섭취하기</div>
+      <div class="br-sep">·</div>
+      <div class="br-item"><span class="ico">🌳</span>그늘지거나 시원한 곳으로 이동하기</div>
+      <div class="br-sep">·</div>
+      <div class="br-item"><span class="ico">😴</span>가장 더운 시간대 충분히 휴식하기</div>
+    </div>
+    <div style="margin-top:12px;font-size:clamp(11px,1.1vw,14px);color:var(--muted);font-weight:700;line-height:1.7;">
+      ※ 특보 발효 여부와 관계없이 여름철에는 항상 지켜주세요.<br>
+      ※ 어지러움·두통·구토·경련 등 온열질환 증상이 보이면 즉시 시원한 곳으로 옮기고 보건교사에게 연락하세요.
     </div>
   </div>
 
@@ -475,6 +573,12 @@
       <span class="em-b">🚫 "금지"이면</span> — 오늘은 밖에 나가면 몸이 힘들 수 있어요. 실내에서 즐겁게 지내요!<br><br>
       💡 날씨가 너무 더울 때도 마찬가지예요. <span class="em-w">폭염주의보</span>는 "오늘 많이 더우니 조심해요",
       <span class="em-b">폭염경보</span>는 "너무 뜨거워서 밖에 나가면 위험해요"라는 신호예요.<br><br>
+      🚨 <span style="color:#fff;background:var(--critical);border-radius:6px;padding:2px 8px;font-weight:900;">폭염중대경보</span>
+      는 <b>건강한 어른도 위험한 더위</b>라는 뜻이에요. 이런 날은 <b>밖에 나가지 않는 것이 우리 반의 약속</b>이에요.
+      ① <b>멈추고</b> ② <b>시원한 곳으로 가고</b> ③ <b>친구가 괜찮은지 살펴보기</b>, 이 세 가지만 기억해요!<br><br>
+      🌙 <span style="color:var(--night);font-weight:900;">열대야</span>는 <b>밤에도 더워서 잠들기 힘든 날</b>이에요.
+      잠을 푹 못 자면 다음 날 어지럽거나 쉽게 지칠 수 있어요. 아침에 물을 한 잔 마시고,
+      몸이 힘들면 참지 말고 꼭 선생님께 이야기해 주세요.<br><br>
       건강을 지키는 가장 좋은 방법은 <span class="em">오늘 날씨를 먼저 확인하는 것</span>이에요! 🌟
     </div>
   </div>
@@ -1312,22 +1416,24 @@ async function fetchTemps(sido, sigun){
   // forecast API (오늘 포함 미래) - past_days=3 파라미터로 과거도 함께 반환
   const url = `https://api.open-meteo.com/v1/forecast`
     + `?latitude=${lat}&longitude=${lon}`
-    + `&daily=temperature_2m_max,weathercode`
+    + `&daily=temperature_2m_max,apparent_temperature_max,temperature_2m_min,weathercode`
     + `&timezone=Asia%2FSeoul`
     + `&past_days=3&forecast_days=4`;  // 과거3 + 오늘+미래3 = 총7일
 
   try{
     const r = await fetch(url, {signal: AbortSignal.timeout(6000)});
     const d = await r.json();
-    const times  = d?.daily?.time               || [];
-    const temps  = d?.daily?.temperature_2m_max || [];
-    const codes  = d?.daily?.weathercode        || [];
+    const times  = d?.daily?.time                      || [];
+    const temps  = d?.daily?.temperature_2m_max        || [];
+    const apps   = d?.daily?.apparent_temperature_max  || [];  // 일최고체감온도
+    const mins   = d?.daily?.temperature_2m_min        || [];  // 밤최저기온
+    const codes  = d?.daily?.weathercode               || [];
     const map = {};
     times.forEach((t,i) => {
-      map[t] = { temp: temps[i], code: codes[i] };
+      map[t] = { temp: temps[i], app: apps[i], min: mins[i], code: codes[i] };
     });
     return map;
-    // {'2024-06-01': {temp:32.1, code:1}, ...}
+    // {'2026-08-05': {temp:34.1, app:37.2, min:26.4, code:1}, ...}
   } catch(e){
     console.warn('Open-Meteo 오류:', e.message);
     return null;
@@ -1362,7 +1468,11 @@ async function fetchWarn(sido){
   const toYmd=`${fut.getFullYear()}${pad(fut.getMonth()+1)}${pad(fut.getDate())}`;
   const url=`https://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList?ServiceKey=${KEY}&pageNo=1&numOfRows=100&dataType=json&stnId=${stn}&fromTmFc=${ymd}0000&toTmFc=${toYmd}2359`;
   const d=await apiFetch(url);
-  return (d?.response?.body?.items?.item||[]).filter(it=>(it.title||it.wrn||'').includes('폭염'));
+  // 폭염(주의보·경보·중대경보) + 열대야(주의보) 모두 수집
+  return (d?.response?.body?.items?.item||[]).filter(it=>{
+    const t = it.title || it.wrn || '';
+    return t.includes('폭염') || t.includes('열대야');
+  });
 }
 
 /* ═══════════════════════════════════════════
@@ -1373,8 +1483,10 @@ async function fetchWarn(sido){
    PM10:  좋음 0~30 / 보통 31~80 / 나쁨 81~150 / 매우나쁨 151이상
    주의보: PM2.5 75이상 또는 PM10 150이상 (2시간 지속) → 실외수업 금지
    경  보: PM2.5 150이상 또는 PM10 300이상 (2시간 지속) → 실외수업 금지
-   폭염주의보: 33°C 이상 2일 지속 → 야외활동 자제
-   폭염경  보: 35°C 이상 2일 지속 → 야외활동 금지 ── */
+   폭염주의보  : 일최고체감온도 33°C 이상 2일 지속 → 야외활동 자제
+   폭염경  보  : 일최고체감온도 35°C 이상 2일 지속 → 야외활동 금지
+   폭염중대경보: 체감 38°C 또는 기온 39°C 이상(하루) → 야외활동 즉시 중단 (2026 신설)
+   열대야주의보: 밤최저기온 25°C 이상(대도시·해안 26 / 제주 27) → 다음날 아침 관리 (2026 신설) ── */
 
 function dGrade(v){
   if(v==null||isNaN(v)) return{l:'정보없음',c:'bg-muted',dot:'#555',rank:0};
@@ -1393,12 +1505,54 @@ function dGrade10(v){
   return         {rank:5};
 }
 
-function overallGrade(dust, hasHeatWarn, hasHeatAlert){
+/* ── 폭염·열대야 특보 판정 ────────────────────────────────
+   ※ 주의: '폭염중대경보' 문자열에는 '폭염경보'가 포함되지 않는다.
+     따라서 반드시 중대경보 → 경보 → 주의보 순서로 검사해야 하며,
+     단순 includes('폭염경보')만 쓰면 중대경보를 놓친다.
+────────────────────────────────────────────────────── */
+function heatStatus(warnList){
+  const has = kw => (warnList||[]).some(w=>{
+    const t = w.title || w.wrn || '';
+    // 해제된 특보는 제외 (command: 1=발표, 2=대치, 3=해제 등 / 문자열에 '해제' 포함 시)
+    if(t.includes('해제')) return false;
+    return t.includes(kw);
+  });
+  return {
+    critical : has('폭염중대경보'),
+    alert    : has('폭염경보'),
+    warn     : has('폭염주의보'),
+    tropical : has('열대야'),
+  };
+}
+
+/* ── 열대야주의보 기준온도 (지역 차등) ──────────────────
+   기본 25°C / 특별·광역시·인구 50만 이상 도시·해안·도서 26°C / 제주 27°C
+   ※ 기상청 공식 세부 구역과 완전히 일치하지는 않는 근사 적용
+─────────────────────────────────────────────────────── */
+const BIG_CITY = ['수원','고양','용인','창원','성남','화성','청주','부천','남양주',
+                  '천안','전주','안산','김해','평택','시흥','포항','제주'];
+const COASTAL  = ['강릉','동해','속초','삼척','고성','양양','김포','화성','안산','시흥','평택',
+                  '보령','서산','당진','태안','서천','홍성','군산','부안','고창',
+                  '목포','여수','순천','광양','해남','완도','진도','신안','영광','무안',
+                  '고흥','보성','장흥','강진','영암','경주','영덕','울진','울릉',
+                  '창원','통영','사천','거제','남해','하동'];
+function tropicalThreshold(loc){
+  const sido  = loc?.sido   || '';
+  const sigun = loc?.sigun  || '';
+  if(sido.includes('제주')) return 27;
+  if(sido.includes('특별시')||sido.includes('광역시')||sido.includes('세종')) return 26;
+  if(BIG_CITY.some(c=>sigun.includes(c))) return 26;
+  if(COASTAL.some(c=>sigun.includes(c)))  return 26;
+  return 25;
+}
+
+function overallGrade(dust, hs){
   const r25=dGrade(dust.pm25??0).rank;
   const r10=dGrade10(dust.pm10??0).rank;
   const rank=Math.max(r25,r10);
-  if(hasHeatAlert||rank>=4) return 'bad';
-  if(hasHeatWarn ||rank===3) return 'caution';
+  if(hs.critical)            return 'critical';   // 최상위 — 야외활동 즉시 중단
+  if(hs.alert   ||rank>=4)   return 'bad';
+  if(hs.warn    ||rank===3)  return 'caution';
   return 'good';
 }
 function fGrade(s){
@@ -1410,11 +1564,14 @@ function fGrade(s){
   return{l:s.slice(0,5),dot:'#555',rank:0};
 }
 
-/* ── 종합 판정 로직 ──────────────────────────────
-   [가능]  PM2.5 보통 이하(≤35) + 폭염특보 없음
-   [자제]  PM2.5 나쁨(36~75)  또는  폭염주의보
-   [금지]  PM2.5 매우나쁨(≥76) 또는 폭염경보
+/* ── 종합 판정 로직 (2026 개편 반영, 4단계) ─────────
+   [가능]     PM2.5 보통 이하(≤35) + 폭염특보 없음
+   [자제]     PM2.5 나쁨(36~75)  또는  폭염주의보
+   [금지]     PM2.5 매우나쁨(≥76) 또는 폭염경보
+   [즉시중단] 폭염중대경보 (체감 38°C↑ 또는 기온 39°C↑, 하루만 예상돼도 발표)
    ※ PM10도 함께 체크하여 더 나쁜 쪽 적용
+   ※ 열대야주의보는 야외활동 판정에는 반영하지 않고
+     '다음날 아침 관리' 안내로 별도 표시
 ─────────────────────────────────────────────── */
 
 /* ═══════════════════════════════════════════
@@ -1422,26 +1579,30 @@ function fGrade(s){
 ═══════════════════════════════════════════ */
 function render(dust, warnList, tempMap){
   const dg=dGrade(dust.pm25);
-  const hasHeatAlert = warnList.some(w=>(w.title||w.wrn||'').includes('폭염경보'));
-  const hasHeatWarn  = warnList.some(w=>(w.title||w.wrn||'').includes('폭염주의보'));
-  const grade = overallGrade(dust, hasHeatWarn, hasHeatAlert);
+  const hs=heatStatus(warnList);
+  const grade = overallGrade(dust, hs);
 
   /* 판정 결과 텍스트
-     가능: PM2.5 보통 이하 + 폭염특보 없음
-     자제: PM2.5 나쁨 또는 폭염주의보
-     금지: PM2.5 매우나쁨 또는 폭염경보           */
+     가능    : PM2.5 보통 이하 + 폭염특보 없음
+     자제    : PM2.5 나쁨 또는 폭염주의보
+     금지    : PM2.5 매우나쁨 또는 폭염경보
+     즉시중단: 폭염중대경보 (체감 38°C↑ 또는 기온 39°C↑)   */
   const MAP={
-    good:   {emoji:'🏃', label:'가능', desc:'야외활동을 해도 좋아요!\n신나게 뛰어놀아요 🎉'},
-    caution:{emoji:'⚠️', label:'자제', desc:'야외활동을 자제하세요.\n꼭 필요하면 마스크 착용! 😷'},
-    bad:    {emoji:'🚫', label:'금지', desc:'실외수업 금지!\n실내 활동으로 대체하세요 🏠'},
+    good:    {emoji:'🏃', label:'가능', desc:'야외활동을 해도 좋아요!\n신나게 뛰어놀아요 🎉'},
+    caution: {emoji:'⚠️', label:'자제', desc:'야외활동을 자제하세요.\n꼭 필요하면 마스크 착용! 😷'},
+    bad:     {emoji:'🚫', label:'금지', desc:'실외수업 금지!\n실내 활동으로 대체하세요 🏠'},
+    critical:{emoji:'🚨', label:'즉시 중단',
+              desc:'폭염중대경보 — 생명을 위협하는 더위입니다.\n모든 야외활동을 지금 바로 중단하세요 🆘'},
   };
 
-  // 오늘 기온·날씨코드 (rg가 desc보다 먼저 필요하므로 여기서 선언)
+  // 오늘 기온·체감온도·날씨코드 (rg가 desc보다 먼저 필요하므로 여기서 선언)
   const todayKey   = todayDash();
   const todayEntry = tempMap ? tempMap[todayKey] : null;
   const todayMax   = todayEntry?.temp != null ? Math.round(todayEntry.temp) : null;
+  const todayApp   = todayEntry?.app  != null ? Math.round(todayEntry.app)  : null;
   const todayCode  = todayEntry?.code ?? null;
-  const tempStr    = todayMax != null ? todayMax + '°C' : '--';
+  const tempStr    = todayApp != null ? todayApp + '°C'
+                   : todayMax != null ? todayMax + '°C' : '--';
   const rg         = rainGrade(todayCode);  // ← desc보다 먼저 선언
 
   /* ── 날씨 조합 설명 문구 ───────────────────────────────
@@ -1487,13 +1648,19 @@ function render(dust, warnList, tempMap){
   const reasons=[];
   if(dg.rank>=4)       reasons.push('미세먼지 '+dg.l+' (PM2.5 '+(dust.pm25??'--')+'㎍/㎥)');
   else if(dg.rank===3) reasons.push('미세먼지 나쁨 — 실외수업 자제 (PM2.5 '+(dust.pm25??'--')+'㎍/㎥)');
-  if(hasHeatAlert)     reasons.push('폭염경보 발효중 — 야외활동 금지 (35°C↑ 2일)');
-  else if(hasHeatWarn) reasons.push('폭염주의보 발효중 — 야외활동 자제 (33°C↑ 2일)');
+  if(hs.critical)      reasons.push('🚨 폭염중대경보 발효중 — 야외활동 즉시 중단 (체감 38°C↑ 또는 기온 39°C↑)');
+  else if(hs.alert)    reasons.push('폭염경보 발효중 — 야외활동 금지 (체감 35°C↑ 2일)');
+  else if(hs.warn)     reasons.push('폭염주의보 발효중 — 야외활동 자제 (체감 33°C↑ 2일)');
+  if(hs.tropical)      reasons.push('🌙 열대야주의보 발효중 — 아침 컨디션 확인');
   const wb=document.getElementById('wb');
   if(reasons.length){
     wb.style.display='block';
-    wb.style.background=(hasHeatAlert||dg.rank>=4)?'var(--bad)':'var(--caution)';
-    wb.style.color=(hasHeatAlert||dg.rank>=4)?'#fff':'#000';
+    if(hs.critical){
+      wb.style.background='var(--critical)'; wb.style.color='#fff';
+    } else {
+      wb.style.background=(hs.alert||dg.rank>=4)?'var(--bad)':'var(--caution)';
+      wb.style.color=(hs.alert||dg.rank>=4)?'#fff':'#000';
+    }
     wb.textContent=reasons.join('  /  ');
   } else wb.style.display='none';
 
@@ -1503,7 +1670,7 @@ function render(dust, warnList, tempMap){
   const db=document.getElementById('db'); db.textContent=dg.l; db.className='badge '+dg.c;
 
   // 폭염 인디케이터
-  const hv=document.getElementById('hv'),hs=document.getElementById('hs'),hb=document.getElementById('hb');
+  const hv=document.getElementById('hv'),hsub=document.getElementById('hs'),hb=document.getElementById('hb');
   // 강수 보조 배지 (rg, todayMax 등은 위에서 이미 선언됨)
   const rb = document.getElementById('rb');
   if(rg){
@@ -1515,9 +1682,36 @@ function render(dust, warnList, tempMap){
   }
 
   hv.textContent = tempStr;
-  if(hasHeatAlert){    hs.textContent='35°C↑ 2일 지속 → 야외활동 금지'; hb.textContent='금지'; hb.className='badge bg-bad';}
-  else if(hasHeatWarn){hs.textContent='33°C↑ 2일 지속 → 야외활동 자제'; hb.textContent='자제'; hb.className='badge bg-caution';}
-  else{                hs.textContent='현재 폭염특보 없음';               hb.textContent='가능'; hb.className='badge bg-good';}
+  const tempSub = (todayMax!=null ? '기온 '+todayMax+'°C · ' : '') + '체감 최고';
+  if(hs.critical){    hsub.textContent='체감 38°C↑ 또는 기온 39°C↑ → 즉시 중단'; hb.textContent='즉시중단'; hb.className='badge bg-critical';}
+  else if(hs.alert){  hsub.textContent='체감 35°C↑ 2일 지속 → 야외활동 금지';    hb.textContent='금지';     hb.className='badge bg-bad';}
+  else if(hs.warn){   hsub.textContent='체감 33°C↑ 2일 지속 → 야외활동 자제';    hb.textContent='자제';     hb.className='badge bg-caution';}
+  else{               hsub.textContent=tempSub+' · 현재 폭염특보 없음';           hb.textContent='가능';     hb.className='badge bg-good';}
+
+  /* ── 열대야 인디케이터 ──
+     오늘 밤 = 내일 날짜의 최저기온(새벽에 나타남) / 어젯밤 = 오늘 날짜의 최저기온 */
+  const loc      = loadLoc();
+  const thr      = tropicalThreshold(loc);
+  const tmrKey   = (()=>{const d=new Date();d.setDate(d.getDate()+1);
+                        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;})();
+  const lastNight= todayEntry?.min != null ? Math.round(todayEntry.min*10)/10 : null;
+  const tonight  = tempMap?.[tmrKey]?.min != null ? Math.round(tempMap[tmrKey].min*10)/10 : null;
+  const nv=document.getElementById('nv'), ns=document.getElementById('ns'), nb=document.getElementById('nb');
+  nv.textContent = tonight!=null ? tonight+'°C' : '--';
+  ns.textContent = `오늘 밤 예상 · 어젯밤 ${lastNight!=null?lastNight+'°C':'--'} · 기준 ${thr}°C`;
+  if(hs.tropical){                    nb.textContent='주의보'; nb.className='badge bg-night';}
+  else if(tonight!=null && tonight>=thr){ nb.textContent='열대야 예상'; nb.className='badge bg-caution';}
+  else{                               nb.textContent='해당없음'; nb.className='badge bg-good';}
+
+  // 열대야 → 다음날 아침 학교 안내 띠
+  const nn=document.getElementById('nn'), nnBody=document.getElementById('nnBody');
+  if(hs.tropical || (lastNight!=null && lastNight>=thr)){
+    nn.style.display='block';
+    nnBody.innerHTML =
+      `어젯밤 최저기온 <b>${lastNight!=null?lastNight+'°C':'--'}</b> (기준 ${thr}°C) — 잠을 설친 학생이 많습니다.<br>`
+      + `① <b>1교시 체육·아침 조회 야외 집합 자제</b> &nbsp;②&nbsp;<b>등교 직후 수분 섭취 안내</b> `
+      + `&nbsp;③&nbsp;<b>오전 중 학생 컨디션 확인</b>(두통·어지러움·무기력 호소 시 보건실 연계)`;
+  } else nn.style.display='none';
 
   // 지표
   document.getElementById('m1').textContent=dust.pm25??'--';
@@ -1548,12 +1742,18 @@ function renderCal(sido, fcstMap, warnList, tempMap){
     // ── 기온 + 날씨 아이콘 (Open-Meteo) ──
     const entry    = tempMap ? tempMap[key] : null;
     const dayTemp  = entry?.temp != null ? Math.round(entry.temp) : null;
+    const dayApp   = entry?.app  != null ? Math.round(entry.app)  : null;   // 일최고체감온도
+    const dayMin   = entry?.min  != null ? Math.round(entry.min)  : null;   // 밤최저기온
     const dayCode  = entry?.code ?? null;
     const dayIcon  = dayCode != null ? wmoIcon(dayCode) : (isPast ? '📅' : '🌡️');
-    const tempColor= dayTemp==null ? 'var(--muted)'
-                   : dayTemp>=35   ? 'var(--bad)'
-                   : dayTemp>=33   ? 'var(--caution)'
+    // 색상 기준은 특보 기준과 동일하게 '체감온도' (없으면 기온으로 대체)
+    const refTemp  = dayApp != null ? dayApp : dayTemp;
+    const tempColor= refTemp==null ? 'var(--muted)'
+                   : refTemp>=38   ? 'var(--critical)'
+                   : refTemp>=35   ? 'var(--bad)'
+                   : refTemp>=33   ? 'var(--caution)'
                    :                 'var(--heat)';
+    const isTropical = dayMin != null && dayMin >= tropicalThreshold(loadLoc());
 
     // ── 미세먼지 예보 (에어코리아 - 오늘/내일만 실데이터) ──
     const gs  = fcstMap[key] || '';
@@ -1565,9 +1765,13 @@ function renderCal(sido, fcstMap, warnList, tempMap){
 
     // ── 폭염특보 (기상청 - 당일 발효분) ──
     const dw     = warnList.filter(w=>(w.tmFc||'').slice(0,8)===ymd);
-    const dAlert = dw.some(w=>(w.title||w.wrn||'').includes('폭염경보'));
-    const dWarn  = dw.some(w=>(w.title||w.wrn||'').includes('폭염주의보'));
-    const warnIcon = dAlert ? '🔴' : dWarn ? '🟠' : '';
+    const dhs    = heatStatus(dw);            // ← 중대경보 우선 판정 (문자열 순서 버그 방지)
+    const dCrit  = dhs.critical;
+    const dAlert = dhs.alert;
+    const dWarn  = dhs.warn;
+    const dTrop  = dhs.tropical;
+    const warnIcon = (dCrit ? '🚨' : dAlert ? '🔴' : dWarn ? '🟠' : '')
+                   + ((dTrop || isTropical) ? '🌙' : '');
 
     // ── 내일 예고 메시지 ──
     let tmrMsg = '';
@@ -1575,9 +1779,12 @@ function renderCal(sido, fcstMap, warnList, tempMap){
       const msgs = [];
       if(sg.includes('매우나쁨')) msgs.push('미세먼지 매우나쁨');
       else if(sg.includes('나쁨')) msgs.push('미세먼지 나쁨');
-      if(dAlert)     msgs.push('폭염경보 예고');
+      if(dCrit)      msgs.push('🚨 폭염중대경보 예고');
+      else if(dAlert)msgs.push('폭염경보 예고');
       else if(dWarn) msgs.push('폭염주의보 예고');
-      else if(dayTemp!=null && dayTemp>=35) msgs.push('폭염 주의');
+      else if(refTemp!=null && refTemp>=38) msgs.push('🚨 체감 38°↑ 위험');
+      else if(refTemp!=null && refTemp>=35) msgs.push('폭염 주의');
+      if(dTrop || isTropical) msgs.push('🌙 열대야');
       tmrMsg = msgs.length ? msgs.join(' · ') : (sg ? sg+' 예상' : '');
     }
 
@@ -1586,6 +1793,7 @@ function renderCal(sido, fcstMap, warnList, tempMap){
 
     // ── 카드 클래스 ──
     let cls = 'cd';
+    if(dCrit || (refTemp!=null && refTemp>=38)) cls += ' crit-day';
     if(isPast)     cls += ' past';
     if(isToday)    cls += ' today';
     if(isTomorrow) cls += ' tmr';
@@ -1610,6 +1818,12 @@ function renderCal(sido, fcstMap, warnList, tempMap){
           ${dayTemp!=null ? dayTemp+'°' : '--°'}
         </span>
         ${warnIcon ? `<span style="font-size:12px;margin-left:3px;">${warnIcon}</span>` : ''}
+      </div>
+      <div style="font-size:clamp(9px,.85vw,11px);font-weight:800;line-height:1.35;color:${tempColor};">
+        ${dayApp!=null ? '체감 '+dayApp+'°' : ''}
+      </div>
+      <div style="font-size:clamp(8px,.8vw,10px);font-weight:800;line-height:1.3;color:${isTropical?'var(--night)':'var(--muted)'};">
+        ${dayMin!=null ? '밤 '+dayMin+'°' : ''}
       </div>
       ${fg ? `<div class="cdust">
         <div class="cddot" style="background:${fg.dot}"></div>
