@@ -323,16 +323,18 @@
         </div>
         <div class="badge bg-muted" id="db">--</div>
       </div>
-      <div class="indicator heat">
+      <!-- 폭염 인디케이터: 더운 시기·특보 발효 시에만 표시됨 (기본 숨김) -->
+      <div class="indicator heat" id="heatInd" style="display:none;">
         <div class="ind-icon">🌡️</div>
         <div class="ind-body">
-          <div class="ind-title">폭염 특보 현황</div>
+          <div class="ind-title">오늘 <b>최고</b> 체감온도</div>
           <div class="ind-val" id="hv">--</div>
           <div class="ind-sub" id="hs">특보 정보</div>
         </div>
         <div class="badge bg-muted" id="hb">--</div>
       </div>
-      <div class="indicator night">
+      <!-- 열대야 인디케이터: 해당하는 날에만 표시됨 (기본 숨김) -->
+      <div class="indicator night" id="nightInd" style="display:none;">
         <div class="ind-icon">🌙</div>
         <div class="ind-body">
           <div class="ind-title">열대야 (밤최저기온)</div>
@@ -347,7 +349,7 @@
 
 <!-- ── 열대야 다음날 아침 안내 ── -->
 <div class="night-notice" id="nn">
-  <div class="nn-title">🌙 열대야주의보 발효 — 오늘 아침 학교에서 이렇게 해주세요</div>
+  <div class="nn-title">🌙 열대야 — 아침 학교 대응 안내</div>
   <div class="nn-body" id="nnBody"></div>
 </div>
 
@@ -1584,6 +1586,26 @@ function dGrade10(v){
   return         {rank:5};
 }
 
+/* ── 인디케이터 표시 임계값 ──
+   폭염 칸을 화면에 띄우기 시작하는 체감온도(°C).
+   이 값 미만이고 특보도 없으면 폭염 칸을 숨긴다. 필요 시 조정. */
+const HEAT_SHOW_TEMP = 28;
+
+/* ── 예보 체감온도 기반 보조 판정 ──
+   기상청 특보가 아직 발표되지 않았거나 특보 지점이 학교와 멀 때를 위한 안전망.
+   공식 특보가 없을 때만 사용하며, 예보값이므로 공식 특보보다 한 단계 보수적으로 적용한다.
+   false로 두면 오직 공식 특보만으로 판정한다. */
+const USE_TEMP_FALLBACK = true;
+function tempHeatLevel(app, max){
+  if(!USE_TEMP_FALLBACK) return null;
+  const ref = app != null ? app : max;
+  if(ref == null) return null;
+  if(ref >= 38 || (max != null && max >= 39)) return 'critical';
+  if(ref >= 35) return 'alert';
+  if(ref >= 33) return 'warn';
+  return null;
+}
+
 /* ── 폭염·열대야 특보 판정 ────────────────────────────────
    ※ 주의: '폭염중대경보' 문자열에는 '폭염경보'가 포함되지 않는다.
      따라서 반드시 중대경보 → 경보 → 주의보 순서로 검사해야 하며,
@@ -1625,13 +1647,15 @@ function tropicalThreshold(loc){
   return 25;
 }
 
-function overallGrade(dust, hs){
+function overallGrade(dust, hs, tempLv){
   const r25=dGrade(dust.pm25??0).rank;
   const r10=dGrade10(dust.pm10??0).rank;
   const rank=Math.max(r25,r10);
-  if(hs.critical)            return 'critical';   // 최상위 — 야외활동 즉시 중단
+  if(hs.critical)            return 'critical';   // 최상위 — 공식 특보로만 발동
   if(hs.alert   ||rank>=4)   return 'bad';
+  if(tempLv==='critical')    return 'bad';        // 예보상 위험 — 즉시중단까지는 올리지 않음
   if(hs.warn    ||rank===3)  return 'caution';
+  if(tempLv==='alert')       return 'caution';
   return 'good';
 }
 function fGrade(s){
@@ -1659,7 +1683,16 @@ function fGrade(s){
 function render(dust, warnList, tempMap){
   const dg=dGrade(dust.pm25);
   const hs=heatStatus(warnList);
-  const grade = overallGrade(dust, hs);
+
+  // 오늘 기온·체감온도 (판정보다 먼저 필요)
+  const todayKey   = todayDash();
+  const todayEntry = tempMap ? tempMap[todayKey] : null;
+  const todayMax   = todayEntry?.temp != null ? Math.round(todayEntry.temp) : null;  // 일최고기온
+  const todayApp   = todayEntry?.app  != null ? Math.round(todayEntry.app)  : null;  // 일최고체감온도
+  const todayCode  = todayEntry?.code ?? null;
+  const refToday   = todayApp != null ? todayApp : todayMax;
+  const tempLv     = tempHeatLevel(todayApp, todayMax);   // 예보 기반 보조 판정
+  const grade      = overallGrade(dust, hs, tempLv);
 
   /* 판정 결과 텍스트
      가능    : PM2.5 보통 이하 + 폭염특보 없음
@@ -1674,12 +1707,6 @@ function render(dust, warnList, tempMap){
               desc:'폭염중대경보 — 생명을 위협하는 더위입니다.\n모든 야외활동을 지금 바로 중단하세요 🆘'},
   };
 
-  // 오늘 기온·체감온도·날씨코드 (rg가 desc보다 먼저 필요하므로 여기서 선언)
-  const todayKey   = todayDash();
-  const todayEntry = tempMap ? tempMap[todayKey] : null;
-  const todayMax   = todayEntry?.temp != null ? Math.round(todayEntry.temp) : null;
-  const todayApp   = todayEntry?.app  != null ? Math.round(todayEntry.app)  : null;
-  const todayCode  = todayEntry?.code ?? null;
   const tempStr    = todayApp != null ? todayApp + '°C'
                    : todayMax != null ? todayMax + '°C' : '--';
   const rg         = rainGrade(todayCode);  // ← desc보다 먼저 선언
@@ -1730,6 +1757,8 @@ function render(dust, warnList, tempMap){
   if(hs.critical)      reasons.push('🚨 폭염중대경보 발효중 — 야외활동 즉시 중단 (체감 38°C↑ 또는 기온 39°C↑)');
   else if(hs.alert)    reasons.push('폭염경보 발효중 — 야외활동 금지 (체감 35°C↑ 2일)');
   else if(hs.warn)     reasons.push('폭염주의보 발효중 — 야외활동 자제 (체감 33°C↑ 2일)');
+  else if(tempLv==='critical') reasons.push('⚠️ 기상청 특보는 없으나 오늘 최고 체감온도 '+refToday+'°C 예보 — 야외활동 재검토 권장');
+  else if(tempLv==='alert')    reasons.push('오늘 최고 체감온도 '+refToday+'°C 예보 — 야외활동 자제 권장 (특보 미발효)');
   if(hs.tropical)      reasons.push('🌙 열대야주의보 발효중 — 아침 컨디션 확인');
   const wb=document.getElementById('wb');
   if(reasons.length){
@@ -1737,8 +1766,9 @@ function render(dust, warnList, tempMap){
     if(hs.critical){
       wb.style.background='var(--critical)'; wb.style.color='#fff';
     } else {
-      wb.style.background=(hs.alert||dg.rank>=4)?'var(--bad)':'var(--caution)';
-      wb.style.color=(hs.alert||dg.rank>=4)?'#fff':'#000';
+      const sev = hs.alert || dg.rank>=4 || tempLv==='critical';
+      wb.style.background=sev?'var(--bad)':'var(--caution)';
+      wb.style.color=sev?'#fff':'#000';
     }
     wb.textContent=reasons.join('  /  ');
   } else wb.style.display='none';
@@ -1760,34 +1790,64 @@ function render(dust, warnList, tempMap){
     rb.style.display = 'none';
   }
 
+  // 큰 숫자는 '현재 기온'이 아니라 '오늘 일최고 체감온도'임을 문구로 분명히 한다
   hv.textContent = tempStr;
-  const tempSub = (todayMax!=null ? '기온 '+todayMax+'°C · ' : '') + '체감 최고';
-  if(hs.critical){    hsub.textContent='체감 38°C↑ 또는 기온 39°C↑ → 즉시 중단'; hb.textContent='즉시중단'; hb.className='badge bg-critical';}
-  else if(hs.alert){  hsub.textContent='체감 35°C↑ 2일 지속 → 야외활동 금지';    hb.textContent='금지';     hb.className='badge bg-bad';}
-  else if(hs.warn){   hsub.textContent='체감 33°C↑ 2일 지속 → 야외활동 자제';    hb.textContent='자제';     hb.className='badge bg-caution';}
-  else{               hsub.textContent=tempSub+' · 현재 폭염특보 없음';           hb.textContent='가능';     hb.className='badge bg-good';}
+  const tempSub = (todayMax!=null ? '일최고기온 '+todayMax+'°C' : '기온 정보 없음')
+                + (todayApp!=null ? ' · 체감 '+todayApp+'°C' : '');
+
+  /* 폭염 칸 표시 조건: 폭염특보 발효중 이거나, 체감(없으면 기온) 28°C 이상인 날.
+     봄·가을·겨울에 "폭염특보 없음"이 상시 떠 있는 것을 막는다. */
+  const anyHeatWrn = hs.critical || hs.alert || hs.warn;
+  const showHeat   = anyHeatWrn || (refToday != null && refToday >= HEAT_SHOW_TEMP);
+  document.getElementById('heatInd').style.display = showHeat ? 'flex' : 'none';
+
+  if(hs.critical){         hsub.textContent=tempSub+' · 폭염중대경보 발효';        hb.textContent='즉시중단';  hb.className='badge bg-critical';}
+  else if(hs.alert){       hsub.textContent=tempSub+' · 폭염경보 발효';            hb.textContent='금지';      hb.className='badge bg-bad';}
+  else if(hs.warn){        hsub.textContent=tempSub+' · 폭염주의보 발효';          hb.textContent='자제';      hb.className='badge bg-caution';}
+  else if(tempLv==='critical'){ hsub.textContent=tempSub+' · 특보 미발효, 예보상 위험 수준'; hb.textContent='위험(예보)'; hb.className='badge bg-critical';}
+  else if(tempLv==='alert'){    hsub.textContent=tempSub+' · 특보 미발효, 경보 수준 예보';   hb.textContent='자제(예보)'; hb.className='badge bg-caution';}
+  else if(tempLv==='warn'){     hsub.textContent=tempSub+' · 특보 미발효, 주의보 수준 예보'; hb.textContent='주의(예보)'; hb.className='badge bg-caution';}
+  else{                    hsub.textContent=tempSub+' · 폭염특보 없음';            hb.textContent='가능';      hb.className='badge bg-good';}
 
   /* ── 열대야 인디케이터 ──
-     오늘 밤 = 내일 날짜의 최저기온(새벽에 나타남) / 어젯밤 = 오늘 날짜의 최저기온 */
-  const loc      = loadLoc();
-  const thr      = tropicalThreshold(loc);
+     1년에 며칠 안 되는 항목이므로, 해당하는 날에만 나타나고 평소엔 숨김
+     표시 조건: 열대야주의보 발효중 / 어젯밤 열대야 / 오늘 밤 열대야 예상 */
+  const thr      = tropicalThreshold(loadLoc());
   const tmrKey   = (()=>{const d=new Date();d.setDate(d.getDate()+1);
                         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;})();
   const lastNight= todayEntry?.min != null ? Math.round(todayEntry.min*10)/10 : null;
   const tonight  = tempMap?.[tmrKey]?.min != null ? Math.round(tempMap[tmrKey].min*10)/10 : null;
-  const nv=document.getElementById('nv'), ns=document.getElementById('ns'), nb=document.getElementById('nb');
-  nv.textContent = tonight!=null ? tonight+'°C' : '--';
-  ns.textContent = `오늘 밤 예상 · 어젯밤 ${lastNight!=null?lastNight+'°C':'--'} · 기준 ${thr}°C`;
-  if(hs.tropical){                    nb.textContent='주의보'; nb.className='badge bg-night';}
-  else if(tonight!=null && tonight>=thr){ nb.textContent='열대야 예상'; nb.className='badge bg-caution';}
-  else{                               nb.textContent='해당없음'; nb.className='badge bg-good';}
+  const wasTrop  = lastNight != null && lastNight >= thr;   // 어젯밤 열대야
+  const willTrop = tonight   != null && tonight   >= thr;   // 오늘 밤 열대야 예상
+  const showNight= hs.tropical || wasTrop || willTrop;
+
+  const nightInd = document.getElementById('nightInd');
+  if(showNight){
+    nightInd.style.display = 'flex';
+    const nv=document.getElementById('nv'), ns=document.getElementById('ns'), nb=document.getElementById('nb');
+    // 어젯밤이 열대야였으면 어젯밤 기온을, 아니면 오늘 밤 예상을 크게 표시
+    if(wasTrop){
+      nv.textContent = lastNight + '°C';
+      ns.textContent = `어젯밤 최저 · 오늘 밤 예상 ${tonight!=null?tonight+'°C':'--'} · 기준 ${thr}°C`;
+    } else {
+      nv.textContent = tonight!=null ? tonight+'°C' : '--';
+      ns.textContent = `오늘 밤 예상 · 기준 ${thr}°C`;
+    }
+    if(hs.tropical){      nb.textContent='주의보';     nb.className='badge bg-night';}
+    else if(wasTrop){     nb.textContent='어젯밤 열대야'; nb.className='badge bg-night';}
+    else{                 nb.textContent='오늘 밤 예상'; nb.className='badge bg-caution';}
+  } else {
+    nightInd.style.display = 'none';
+  }
 
   // 열대야 → 다음날 아침 학교 안내 띠
   const nn=document.getElementById('nn'), nnBody=document.getElementById('nnBody');
-  if(hs.tropical || (lastNight!=null && lastNight>=thr)){
+  if(wasTrop || hs.tropical){
     nn.style.display='block';
-    nnBody.innerHTML =
-      `어젯밤 최저기온 <b>${lastNight!=null?lastNight+'°C':'--'}</b> (기준 ${thr}°C) — 잠을 설친 학생이 많습니다.<br>`
+    const head = wasTrop
+      ? `어젯밤 최저기온 <b>${lastNight}°C</b> (기준 ${thr}°C) — 잠을 설친 학생이 많습니다.`
+      : `오늘 밤 <b>열대야주의보</b>가 발효 중입니다 (기준 ${thr}°C) — 내일 아침 아래를 확인해 주세요.`;
+    nnBody.innerHTML = head + '<br>'
       + `① <b>1교시 체육·아침 조회 야외 집합 자제</b> &nbsp;②&nbsp;<b>등교 직후 수분 섭취 안내</b> `
       + `&nbsp;③&nbsp;<b>오전 중 학생 컨디션 확인</b>(두통·어지러움·무기력 호소 시 보건실 연계)`;
   } else nn.style.display='none';
