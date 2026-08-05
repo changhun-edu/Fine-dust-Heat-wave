@@ -1226,9 +1226,10 @@ function onSigunChange(){
 function confirmLocation(){
   if(!pendingLoc) return;
   saveLoc(pendingLoc);
+  clearSnap();               // 이전 학교 데이터 폐기
   closeModal();
   applyLoc(pendingLoc);
-  go();
+  go({force:true});
 }
 
 function applyLoc(loc){
@@ -2158,14 +2159,22 @@ function renderCal(loc, fcstMap, warnList, tempMap){
    그것을 계속 보여주고 '갱신 실패'만 알린다. */
 const SNAP_KEY = 'outdoor_snap_v1';
 const SNAP_MAX_AGE = 3*3600*1000;
-function saveSnap(o){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify({...o, t:Date.now()})); }catch{} }
-function loadSnap(){
+const locKey = l => (l ? (l.sido||'')+'|'+(l.sigun||'') : '');
+function saveSnap(o, loc){
+  try{ localStorage.setItem(SNAP_KEY, JSON.stringify({...o, loc:locKey(loc), t:Date.now()})); }catch{}
+}
+function loadSnap(loc){
   try{
     const v = JSON.parse(localStorage.getItem(SNAP_KEY));
-    if(v && Date.now()-v.t < SNAP_MAX_AGE) return v;
+    if(!v) return null;
+    if(Date.now()-v.t >= SNAP_MAX_AGE) return null;
+    // 지역을 바꿨다면 이전 학교의 값을 재사용하면 안 된다
+    if(loc && v.loc && v.loc !== locKey(loc)) return null;
+    return v;
   }catch{}
   return null;
 }
+function clearSnap(){ try{ localStorage.removeItem(SNAP_KEY); }catch{} }
 const hhmm = ts => { const d=new Date(ts); return pad(d.getHours())+':'+pad(d.getMinutes()); };
 
 let _busy = false;
@@ -2180,7 +2189,7 @@ async function go(opts){
 
   hideErr();
   const sc=document.getElementById('sc');
-  const hadSnap = !!loadSnap();
+  const hadSnap = !!loadSnap(loc);
   if(!hadSnap){                                      // 보여줄 이전 결과가 없을 때만 로딩 화면
     sc.className='status-card loading';
     document.getElementById('se').textContent='⏳';
@@ -2208,10 +2217,10 @@ async function go(opts){
 
     render(dust, warnList||[], tempMap);
     renderCal(loc, fcstMap||{}, warnList||[], tempMap||{});
-    saveSnap({dust, warnList:warnList||[], fcstMap:fcstMap||{}, tempMap:tempMap||null});
+    saveSnap({dust, warnList:warnList||[], fcstMap:fcstMap||{}, tempMap:tempMap||null}, loc);
   } catch(e){
     console.error(e);
-    const snap = loadSnap();
+    const snap = loadSnap(loc);
     if(snap){
       // 갱신만 실패했을 뿐이므로 마지막 정상 결과를 그대로 유지한다
       try{
@@ -2251,7 +2260,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const saved=loadLoc();
   if(saved){
     applyLoc(saved);
-    go();
+    go({force:true});   // 첫 조회는 탭이 가려져 있어도 실행
   } else {
     // 첫 접속: 버튼 강조 유지 + 모달 자동 열기
     openModal();
@@ -2262,7 +2271,7 @@ setInterval(go, 10*60*1000);
 // 화면이 가려진 동안에는 갱신하지 않고, 다시 보이면 즉시 한 번 갱신한다
 document.addEventListener('visibilitychange', ()=>{
   if(!document.hidden){
-    const snap = loadSnap();
+    const snap = loadSnap(loadLoc());
     if(!snap || Date.now()-snap.t > 10*60*1000) go({force:true});
   }
 });
