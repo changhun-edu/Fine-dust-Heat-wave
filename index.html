@@ -2189,6 +2189,28 @@ const hhmm = ts => { const d=new Date(ts); return pad(d.getHours())+':'+pad(d.ge
 
 let _busy = false;
 
+/* 지역을 바꿨을 때 이전 학교의 값이 그대로 남아 있으면 오해를 부른다.
+   판정 카드와 마찬가지로 항목별 확인·지표·캘린더도 '조회중'으로 되돌린다. */
+function resetPanels(){
+  const set = (id, v) => { const e=document.getElementById(id); if(e) e.textContent = v; };
+  // 항목별 확인 — 미세먼지
+  set('dv','--');
+  document.getElementById('ds').innerHTML = '조회중…';
+  const db=document.getElementById('db'); db.textContent='조회중'; db.className='badge bg-muted';
+  // 폭염·열대야 칸은 조건부 표시이므로 조회 전에는 감춘다
+  const hi=document.getElementById('heatInd');  if(hi) hi.style.display='none';
+  const ni=document.getElementById('nightInd'); if(ni) ni.style.display='none';
+  const nn=document.getElementById('nn');       if(nn) nn.style.display='none';
+  const rb=document.getElementById('rb');       if(rb) rb.style.display='none';
+  // 하단 지표
+  ['m1','m2','m3','m4'].forEach(id=>set(id,'--'));
+  set('m4l','CAI');
+  // 캘린더
+  const cg=document.getElementById('cg');
+  if(cg) cg.innerHTML = '<div style="grid-column:1/-1;padding:26px 0;text-align:center;'
+    + 'color:var(--muted);font-weight:800;font-size:14px;">날씨 정보를 불러오는 중…</div>';
+}
+
 async function go(opts){
   const force = opts && opts.force;
   const loc=loadLoc();
@@ -2206,6 +2228,7 @@ async function go(opts){
     document.getElementById('sl').textContent='조회중';
     document.getElementById('sd').textContent='데이터를 가져오고 있습니다…';
     document.getElementById('wb').style.display='none';
+    resetPanels();                                   // 이전 학교 값 잔상 제거
   }
 
   try{
