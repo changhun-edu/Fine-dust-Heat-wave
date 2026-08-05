@@ -47,6 +47,7 @@
       0%,100%{box-shadow:0 0 0 0 rgba(255,45,85,.45);}
       50%    {box-shadow:0 0 34px 6px rgba(255,45,85,.30);}
     }
+    .status-card.unknown{background:var(--surface);   border-color:var(--muted);border-style:dashed;}
     .status-card.loading{background:var(--surface);   border-color:var(--border);}
     .s-emoji{font-size:clamp(70px,9vw,140px);line-height:1;animation:fl 3s ease-in-out infinite;}
     @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
@@ -55,6 +56,7 @@
     .status-card.caution .s-label{color:var(--caution);}
     .status-card.bad     .s-label{color:var(--bad);}
     .status-card.critical .s-label{color:#fff;font-size:clamp(42px,6.2vw,100px);word-break:keep-all;text-shadow:0 0 22px rgba(255,45,85,.75);}
+    .status-card.unknown .s-label{color:var(--muted);}
     .status-card.loading .s-label{color:var(--muted);}
     .s-desc{margin-top:12px;font-size:clamp(16px,2.2vw,32px);font-weight:700;color:rgba(255,255,255,.65);text-align:center;line-height:1.4;white-space:pre-line;}
     .warn-badge{margin-top:12px;border-radius:10px;padding:7px 16px;font-size:clamp(13px,1.5vw,20px);font-weight:900;text-align:center;max-width:480px;background:var(--bad);color:#fff;}
@@ -168,6 +170,8 @@
     .spin{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:5px;}
     @keyframes sp{to{transform:rotate(360deg)}}
     .errbox{background:rgba(255,68,68,.1);border:1px solid var(--bad);border-radius:11px;padding:11px 14px;color:var(--bad);font-weight:700;font-size:13px;margin-top:9px;white-space:pre-wrap;}
+    /* 갱신 실패처럼 '오류'가 아닌 안내는 붉은색 대신 중립색으로 */
+    .errbox.mild{ background:rgba(148,163,184,.12); border-color:var(--muted); color:var(--muted); }
 
     /* ── GUIDE SECTION ── */
     .guide { margin-top: 28px; display: flex; flex-direction: column; gap: 20px; }
@@ -528,6 +532,10 @@
         ※ 미세먼지와 폭염 조건이 동시에 해당되면 <b>더 높은 단계</b>를 적용합니다.
         예를 들어 미세먼지가 '좋음'이어도 폭염중대경보가 발효되면 판정은 <b style="color:var(--critical);">즉시 중단</b>입니다.<br>
         ※ <b>열대야주의보</b>는 야간 지표이므로 당일 야외활동 판정에는 반영하지 않고, 별도의 아침 관리 안내로 표시합니다.<br>
+        ※ 기상청 특보가 아직 발표되지 않았더라도 <b>오늘 예보 체감온도</b>가 기준을 넘으면
+        <b>자제 / 금지</b>로 한 단계 보수적으로 판정하고, 배지에 <b>(예보)</b>를 표시합니다.
+        최상위 <b style="color:var(--critical);">즉시 중단</b>은 공식 특보가 발표된 경우에만 표시됩니다.<br>
+        ※ 미세먼지 값을 받지 못한 경우에는 '가능'으로 단정하지 않고 <b>❓ 확인 필요</b>로 표시합니다.<br>
         ※ 판정은 참고 자료입니다. <b>최종 결정은 학교장 판단</b>에 따르며, 현장 상황(운동장 복사열, 그늘 유무, 활동 강도 등)을 함께 고려하세요.
       </div>
     </div>
@@ -801,11 +809,11 @@ const REGIONS = {
     "옹진군":["북도면","백령면","대청면","덕적면","자월면","영흥면"]
   },
   "대전광역시":{
-    "동구":["원동","성남동","인동","중동","효동","판암1동","판암2동","삼성동","자양동","홍도동","천동","대별동","이사동","용운동","대동","낭월동","주촌동","가양1동","가양2동","용전동","중村동","오정동","세천동","신상동","신하동","신촌동","장척동","마산동","직동"],
+    "동구":["원동","성남동","인동","중동","효동","판암1동","판암2동","삼성동","자양동","홍도동","천동","대별동","이사동","용운동","대동","낭월동","주촌동","가양1동","가양2동","용전동","중촌동","오정동","세천동","신상동","신하동","신촌동","장척동","마산동","직동"],
     "중구":["은행선화동","목동","중촌동","대흥동","문창동","산성동","용두동","오류동","태평1동","태평2동","태평3동","태평4동","유천1동","유천2동","문화동"],
     "서구":["둔산1동","둔산2동","둔산3동","월평1동","월평2동","월평3동","갈마1동","갈마2동","탄방동","삼천동","가수원동","도마1동","도마2동","정림동","변동","흑석동","복수동","용문동"],
     "유성구":["온천1동","온천2동","노은1동","노은2동","노은3동","신성동","전민동","구즉동","관평동","봉명1동","봉명2동","반석동","장대동","원내동","원신흥동","갑동","대정동","금고동","방동","복용동","외삼동","봉산동","학하동","성북동","세동","전동","구암동","송강동","문지동","신봉동","추목동"],
-    "대덕구":["오정동","읍내동","中里동","법동","목상동","갈전동","신대동","비래동","장동","미호동","와동","부수동","평촌동","덕암동","중리동","석봉동","우물동","신탄진동","회덕동"]
+    "대덕구":["오정동","읍내동","중리동","법동","목상동","갈전동","신대동","비래동","장동","미호동","와동","부수동","평촌동","덕암동","중리동","석봉동","우물동","신탄진동","회덕동"]
   },
   "울산광역시":{
     "중구":["학성동","반구1동","반구2동","복산동","성남동","옥교동","우정동","북정동","장현동","태화동","다운동","약사동","남외동","동동","교동","서동"],
@@ -850,7 +858,6 @@ const REGIONS = {
     "가평군":["가평군"],
     "연천군":["연천군"],
     "포천시":["포천시"],
-    "동두천시":["동두천시"],
     "양주시":["양주시"],
     "구리시":["구리시"],
     "남양주시":["남양주시"],
@@ -1022,6 +1029,9 @@ const REGIONS = {
 ═══════════════════════════════════════════ */
 const DOW = ['일','월','화','수','목','금','토'];
 const pad = n => String(n).padStart(2,'0');
+// 외부 API 문자열을 innerHTML에 넣기 전 이스케이프 (방어적)
+const esc = v => String(v??'').replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function tick(){
   const n=new Date();
   document.getElementById('clk').textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}`;
@@ -1252,6 +1262,9 @@ async function checkLocalProxy(){
   return _useLocalProxy;
 }
 
+let _lastGoodProxy = null;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 async function apiFetch(url){
   // 1순위: 로컬 프록시 서버 (proxy-server.js)
   const hasLocal = await checkLocalProxy();
@@ -1291,6 +1304,12 @@ async function apiFetch(url){
     },
   ];
 
+  // 직전에 성공한 프록시를 맨 앞으로 — 매번 죽은 프록시부터 두드리지 않도록
+  if(_lastGoodProxy){
+    const i = PROXY_LIST.findIndex(p => p.name === _lastGoodProxy);
+    if(i > 0) PROXY_LIST.unshift(PROXY_LIST.splice(i,1)[0]);
+  }
+
   let lastMsg = '';
   for(const p of PROXY_LIST){
     try{
@@ -1298,7 +1317,7 @@ async function apiFetch(url){
       if(!r.ok) throw new Error('HTTP ' + r.status);
       const data = await p.parse(r);
       if(!data) throw new Error('파싱 실패');
-      console.log('✅ 프록시 성공:', p.name);
+      _lastGoodProxy = p.name;
       return data;
     } catch(e){
       lastMsg = e.message;
@@ -1592,7 +1611,11 @@ async function fetchStationCoords(sidoApi){
   const ck = 'aq_stn_'+sidoApi;
   try{
     const c = JSON.parse(localStorage.getItem(ck));
-    if(c && Date.now()-c.t < 7*24*3600*1000 && c.v?.length) return c.v;
+    if(c){
+      const age = Date.now() - c.t;
+      if(c.v?.length && age < 7*24*3600*1000) return c.v;   // 정상 캐시 7일
+      if(!c.v?.length && age < 6*3600*1000)   return [];     // 실패 시 6시간 백오프
+    }
   }catch{}
   const url = `https://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getMsrstnList`
             + `?serviceKey=${KEY}&returnType=json&numOfRows=300&pageNo=1`
@@ -1611,10 +1634,17 @@ async function fetchStationCoords(sidoApi){
       else return;
       list.push({ name: it.stationName, lat, lon });
     });
-    if(list.length) localStorage.setItem(ck, JSON.stringify({t:Date.now(), v:list}));
+    // 빈 결과도 저장한다 — 그래야 6시간 백오프가 걸려 프록시를 낭비하지 않는다
+    localStorage.setItem(ck, JSON.stringify({t:Date.now(), v:list}));
+    if(!list.length){
+      console.warn('측정소 좌표를 얻지 못했습니다. 공공데이터포털에서 '
+        + '"에어코리아 측정소정보 조회 서비스(MsrstnInfoInqireSvc)"를 '
+        + '별도로 활용신청했는지 확인하세요. (실시간 조회와 다른 서비스입니다)');
+    }
     return list;
   }catch(e){
-    console.warn('측정소 목록 조회 실패(대표 측정소로 대체):', e.message);
+    localStorage.setItem(ck, JSON.stringify({t:Date.now(), v:[]}));
+    console.warn('측정소 목록 조회 실패(시도 대표 측정소로 대체):', e.message);
     return [];
   }
 }
@@ -1814,7 +1844,12 @@ function render(dust, warnList, tempMap){
   const todayCode  = todayEntry?.code ?? null;
   const refToday   = todayApp != null ? todayApp : todayMax;
   const tempLv     = tempHeatLevel(todayApp, todayMax);   // 예보 기반 보조 판정
-  const grade      = overallGrade(dust, hs, tempLv);
+
+  /* 미세먼지 값을 전혀 받지 못했는데 '가능'이라고 단언하면 위험하다.
+     폭염 근거도 없을 때만 '확인 필요'로 표시한다. */
+  const dustMissing = (dust.pm25 == null && dust.pm10 == null);
+  let grade = overallGrade(dust, hs, tempLv);
+  if(dustMissing && grade === 'good') grade = 'unknown';
 
   /* 판정 결과 텍스트
      가능    : PM2.5 보통 이하 + 폭염특보 없음
@@ -1827,6 +1862,8 @@ function render(dust, warnList, tempMap){
     bad:     {emoji:'🚫', label:'금지', desc:'실외수업 금지!\n실내 활동으로 대체하세요 🏠'},
     critical:{emoji:'🚨', label:'즉시 중단',
               desc:'폭염중대경보 — 생명을 위협하는 더위입니다.\n모든 야외활동을 지금 바로 중단하세요 🆘'},
+    unknown: {emoji:'❓', label:'확인 필요',
+              desc:'미세먼지 값을 받지 못했습니다.\n새로고침하거나 에어코리아에서 직접 확인하세요 🔎'},
   };
 
   const tempStr    = todayApp != null ? todayApp + '°C'
@@ -1874,7 +1911,8 @@ function render(dust, warnList, tempMap){
 
   // 원인 배지
   const reasons=[];
-  if(dg.rank>=4)       reasons.push('미세먼지 '+dg.l+' (PM2.5 '+(dust.pm25??'--')+'㎍/㎥)');
+  if(dustMissing)      reasons.push('미세먼지 값을 받지 못했습니다 — 판정에 반영되지 않았습니다');
+  else if(dg.rank>=4)  reasons.push('미세먼지 '+dg.l+' (PM2.5 '+(dust.pm25??'--')+'㎍/㎥)');
   else if(dg.rank===3) reasons.push('미세먼지 나쁨 — 실외수업 자제 (PM2.5 '+(dust.pm25??'--')+'㎍/㎥)');
   if(hs.critical)      reasons.push('🚨 폭염중대경보 발효중 — 야외활동 즉시 중단 (체감 38°C↑ 또는 기온 39°C↑)');
   else if(hs.alert)    reasons.push('폭염경보 발효중 — 야외활동 금지 (체감 35°C↑ 2일)');
@@ -1901,8 +1939,8 @@ function render(dust, warnList, tempMap){
   const dLines = ['㎍/㎥ · PM10 '+(dust.pm10??'--')+' ㎍/㎥'];
   if(dust.station){
     dLines.push(dust.nearest
-      ? dust.station+' 측정소'+(dust.dist!=null ? ' · '+dust.dist.toFixed(1)+'km' : '')
-      : dust.station+' 측정소 (시도 대표)');
+      ? esc(dust.station)+' 측정소'+(dust.dist!=null ? ' · '+dust.dist.toFixed(1)+'km' : '')
+      : esc(dust.station)+' 측정소 (시도 대표)');
   }
   document.getElementById('ds').innerHTML = dLines.join('<br>');
   const db=document.getElementById('db'); db.textContent=dg.l; db.className='badge '+dg.c;
@@ -2114,38 +2152,91 @@ function renderCal(loc, fcstMap, warnList, tempMap){
 /* ═══════════════════════════════════════════
    MAIN
 ═══════════════════════════════════════════ */
-async function go(){
+/* ── 마지막 정상 조회 결과 보관 ──
+   갱신이 한 번 실패했다고 판정을 지워버리면, 화면에는 '오류'만 남고
+   정작 필요한 안전 정보가 사라진다. 최근 3시간 이내 결과가 있으면
+   그것을 계속 보여주고 '갱신 실패'만 알린다. */
+const SNAP_KEY = 'outdoor_snap_v1';
+const SNAP_MAX_AGE = 3*3600*1000;
+function saveSnap(o){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify({...o, t:Date.now()})); }catch{} }
+function loadSnap(){
+  try{
+    const v = JSON.parse(localStorage.getItem(SNAP_KEY));
+    if(v && Date.now()-v.t < SNAP_MAX_AGE) return v;
+  }catch{}
+  return null;
+}
+const hhmm = ts => { const d=new Date(ts); return pad(d.getHours())+':'+pad(d.getMinutes()); };
+
+let _busy = false;
+
+async function go(opts){
+  const force = opts && opts.force;
   const loc=loadLoc();
   if(!loc){ return; }
+  if(_busy) return;                                  // 중복 실행 방지
+  if(typeof document.hidden !== 'undefined' && document.hidden && !force) return;  // 탭이 안 보이면 건너뜀
+  _busy = true;
 
   hideErr();
   const sc=document.getElementById('sc');
-  sc.className='status-card loading';
-  document.getElementById('se').textContent='⏳';
-  document.getElementById('sl').textContent='조회중';
-  document.getElementById('sd').textContent='데이터를 가져오고 있습니다…';
-  document.getElementById('wb').style.display='none';
+  const hadSnap = !!loadSnap();
+  if(!hadSnap){                                      // 보여줄 이전 결과가 없을 때만 로딩 화면
+    sc.className='status-card loading';
+    document.getElementById('se').textContent='⏳';
+    document.getElementById('sl').textContent='조회중';
+    document.getElementById('sd').textContent='데이터를 가져오고 있습니다…';
+    document.getElementById('wb').style.display='none';
+  }
 
   try{
-    const [dust,fcstMap,warnList,tempMap]=await Promise.all([
-      fetchDust(loc.sido, loc.sigun),
-      fetchFcst().catch(()=>({})),
-      fetchWarn(loc.sido, loc.sigun).catch(()=>[]),
-      fetchTemps(loc.sido, loc.sigun).catch(()=>null),
-    ]);
+    // Open-Meteo는 프록시를 쓰지 않으므로 병렬로 두고,
+    // 프록시를 쓰는 호출은 순차로 보낸다 (동시 요청이 몰리면 무료 프록시가 차단된다)
+    const tempP = fetchTemps(loc.sido, loc.sigun).catch(()=>null);
+
+    let dust;
+    try{
+      dust = await fetchDust(loc.sido, loc.sigun);
+    }catch(e){
+      console.warn('미세먼지 1차 실패, 5초 후 재시도:', e.message);
+      await sleep(5000);
+      dust = await fetchDust(loc.sido, loc.sigun);    // 일시적 차단 대비 1회 재시도
+    }
+    const warnList = await fetchWarn(loc.sido, loc.sigun).catch(()=>[]);
+    const fcstMap  = await fetchFcst().catch(()=>({}));
+    const tempMap  = await tempP;
+
     render(dust, warnList||[], tempMap);
     renderCal(loc, fcstMap||{}, warnList||[], tempMap||{});
+    saveSnap({dust, warnList:warnList||[], fcstMap:fcstMap||{}, tempMap:tempMap||null});
   } catch(e){
     console.error(e);
-    showErr('⚠️ ' + e.message);
-    sc.className='status-card loading';
-    document.getElementById('se').textContent='❌';
-    document.getElementById('sl').textContent='오류';
-    document.getElementById('sd').textContent='잠시 후 다시 시도해주세요';
+    const snap = loadSnap();
+    if(snap){
+      // 갱신만 실패했을 뿐이므로 마지막 정상 결과를 그대로 유지한다
+      try{
+        render(snap.dust, snap.warnList||[], snap.tempMap);
+        renderCal(loc, snap.fcstMap||{}, snap.warnList||[], snap.tempMap||{});
+      }catch(e2){ console.error(e2); }
+      showErr('⏳ 갱신에 실패했습니다. ' + hhmm(snap.t) + ' 기준 정보를 표시하고 있습니다.', true);
+    } else {
+      showErr('⚠️ ' + e.message);
+      sc.className='status-card loading';
+      document.getElementById('se').textContent='❌';
+      document.getElementById('sl').textContent='오류';
+      document.getElementById('sd').textContent='잠시 후 다시 시도해주세요';
+    }
+  } finally {
+    _busy = false;
   }
 }
 
-function showErr(m){const b=document.getElementById('err');b.style.display='block';b.textContent=m;}
+function showErr(m, mild){
+  const b=document.getElementById('err');
+  b.style.display='block';
+  b.className = mild ? 'errbox mild' : 'errbox';
+  b.textContent=m;
+}
 function hideErr(){document.getElementById('err').style.display='none';}
 
 /* ═══════════════════════════════════════════
@@ -2167,6 +2258,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
   }
 });
 setInterval(go, 10*60*1000);
+
+// 화면이 가려진 동안에는 갱신하지 않고, 다시 보이면 즉시 한 번 갱신한다
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden){
+    const snap = loadSnap();
+    if(!snap || Date.now()-snap.t > 10*60*1000) go({force:true});
+  }
+});
 </script>
 </body>
 </html>
