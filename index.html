@@ -307,6 +307,12 @@
 </div>
 
 <!-- ── MAIN GRID ── -->
+<!-- 오류·안내 (본문 최상단에 두어야 실제로 눈에 띈다) -->
+<div class="errbox" id="err" style="display:none"></div>
+<!-- 진단 표시줄: 어떤 빌드인지·무엇으로 조회했는지 확인용 -->
+<div id="diag" style="margin:0 0 12px;font-size:11px;color:var(--muted);font-weight:700;
+     word-break:break-all;opacity:.8;">준비중…</div>
+
 <div class="main-grid">
   <div class="status-card loading" id="sc">
     <div class="s-emoji" id="se">⏳</div>
@@ -673,11 +679,6 @@
   </div>
 
 </div>
-
-<div class="errbox" id="err" style="display:none"></div>
-<!-- 진단 표시줄: 어떤 빌드인지·무엇으로 조회했는지 확인용 -->
-<div id="diag" style="margin-top:8px;font-size:11px;color:var(--muted);font-weight:700;
-     word-break:break-all;opacity:.75;">준비중…</div>
 
 
 <div class="credit">만든이 2026 최창훈</div>
@@ -2379,6 +2380,17 @@ async function go(opts){
   // 지역 보정은 NEIS 호출이 걸릴 수 있으므로 로딩 화면을 띄운 뒤에 수행한다
   loc = await healLoc(loc);
 
+  // 진단 줄은 조회 성공 여부와 상관없이 즉시 갱신한다
+  const showDiag = extra => {
+    const el = document.getElementById('diag');
+    if(!el) return;
+    el.textContent = `[${BUILD}] 조회지역=${apiSidoOf(loc)} / 지점=${apiStnOf(loc)}`
+      + ` / 시도=${loc.sido} / 시군구=${loc.sigun||'(없음)'}`
+      + ` / 좌표=${JSON.stringify(getCoord(loc.sido, loc.sigun))}`
+      + (extra || '');
+  };
+  showDiag(' / 조회중…');
+
   // 보정 후에도 시군구가 비어 있으면 조회 지역이 틀어질 수 있으므로 알린다
   let notes = [];
   if(!loc.sigun || !(REGIONS[loc.sido] && REGIONS[loc.sido][loc.sigun])){
@@ -2411,19 +2423,14 @@ async function go(opts){
     if(!tempMap || !Object.keys(tempMap).length){
       notes.push('기온 정보를 불러오지 못했습니다' + (_tempErr ? ' — ' + _tempErr : '') + '.');
     }
-    // 어떤 지역·측정소로 조회했는지 항상 남긴다 (문제 파악용)
-    const diag = `[${BUILD}] 조회지역=${apiSidoOf(loc)} / 지점=${apiStnOf(loc)} `
-               + `/ 시도=${loc.sido} / 시군구=${loc.sigun||'(없음)'} `
-               + `/ 좌표=${JSON.stringify(getCoord(loc.sido, loc.sigun))} `
-               + `/ 측정소=${dust.station||'(지역평균)'} / 기온=${tempMap?Object.keys(tempMap).length+'일':'실패'}`;
-    console.info(diag);
-    const dg2 = document.getElementById('diag');
-    if(dg2) dg2.textContent = diag;
+    showDiag(` / 측정소=${dust.station||'(지역평균)'}`
+           + ` / 기온=${tempMap && Object.keys(tempMap).length ? Object.keys(tempMap).length+'일' : '실패'+(_tempErr?'('+_tempErr+')':'')}`);
 
     if(notes.length) showErr('⚠️ ' + notes.join('\n'), true);
   } catch(e){
     console.error(e);
     if(!alive()) return;
+    showDiag(' / 조회실패: ' + e.message.split('\n')[0]);
     const snap = loadSnap(loc);
     if(snap){
       // 갱신만 실패했을 뿐이므로 마지막 정상 결과를 그대로 유지한다
@@ -2456,6 +2463,10 @@ function hideErr(){document.getElementById('err').style.display='none';}
    INIT
 ═══════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', ()=>{
+  // 어떤 파일이 로드됐는지 즉시 표시 (브라우저 캐시 확인용)
+  const dg=document.getElementById('diag');
+  if(dg) dg.textContent = `[${BUILD}] 로드됨 · 지역 확인 중…`;
+
   // 시계 시작
   tick();
   setInterval(tick, 1000);
