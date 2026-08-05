@@ -1067,6 +1067,52 @@ function loadLoc(){
 const NEIS_KEY = 'ba946f12ee3c429bbc1ab08cbb2eace5';
 const NEIS_URL = 'https://open.neis.go.kr/hub/schoolInfo';
 
+/* ── NEIS 학교 레코드 → 지역 정보 ─────────────────────────
+   ORG_RDNMA: "경기도 수원시 팔달구 …" / "광주광역시 서구 …" 형태.
+   REGIONS의 시군구 키는 '수원시 팔달구'처럼 두 어절인 경우(32곳)가 있어
+   두 어절 → 한 어절 순으로 실제 키와 대조해야 한다.
+   apiSido는 NEIS 시도명에서 직접 확정한다. 통합특별시는 '광주'와 '전남'이
+   한 시도로 합쳐져 있어, 주소 파싱이 실패하면 엉뚱한 쪽으로 조회되기 때문. */
+function parseSchoolRegion(r){
+  const sido = LCTN_TO_SIDO[r.LCTN_SC_NM] || r.LCTN_SC_NM;
+  const parts = (r.ORG_RDNMA || '').trim().split(/\s+/);
+  const inRegion = v => !!(v && REGIONS[sido] && REGIONS[sido][v]);
+  const two = parts.slice(1,3).join(' ');
+  let sigun = '';
+  if(inRegion(two))                     sigun = two;
+  else if(inRegion(parts[1]))           sigun = parts[1];
+  else if(REGIONS[sido] && Object.keys(REGIONS[sido]).length === 1)
+    sigun = Object.keys(REGIONS[sido])[0];       // 세종처럼 시군구가 하나뿐인 경우
+  // 주소에 옛 시도명이 남아 있으면 그것으로 API 지역을 확정
+  const addrHint = (r.ORG_RDNMA||'').startsWith('광주') ? '광주'
+                 : (r.ORG_RDNMA||'').startsWith('전라남도') ? '전남' : null;
+  const apiSido = SIDO_API[r.LCTN_SC_NM] || addrHint || toSidoApi(sido, sigun);
+  return { sido, sigun, apiSido };
+}
+
+/* 예전 버전에서 저장된 지역에는 apiSido가 없다.
+   학교명이 남아 있으면 NEIS를 한 번 다시 조회해 조용히 보정한다.
+   (NEIS는 CORS가 열려 있어 프록시 없이 직접 호출된다) */
+async function healLoc(loc){
+  if(!loc || loc.apiSido || !loc.schoolName) return loc;
+  try{
+    const url = `${NEIS_URL}?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=10`
+              + `&SCHUL_NM=${encodeURIComponent(loc.schoolName)}`;
+    const d = await (await fetch(url, {signal: AbortSignal.timeout(5000)})).json();
+    const rows = d?.schoolInfo?.[1]?.row || [];
+    const r = rows.find(x => x.SCHUL_NM === loc.schoolName) || rows[0];
+    if(!r) return loc;
+    const g = parseSchoolRegion(r);
+    const next = { ...loc, sido:g.sido, sigun:g.sigun || loc.sigun || '', apiSido:g.apiSido };
+    saveLoc(next); applyLoc(next);
+    console.info('지역 정보 자동 보정:', next);
+    return next;
+  }catch(e){
+    console.warn('지역 자동 보정 실패:', e.message);
+    return loc;
+  }
+}
+
 /* ── SIDO → 에어코리아 sidoName 매핑 (NEIS LCTN_SC_NM 기준) ── */
 const LCTN_TO_SIDO = {
   '서울특별시':'서울특별시','부산광역시':'부산광역시','대구광역시':'대구광역시',
@@ -1165,23 +1211,7 @@ async function searchSchool(){
 
     list.innerHTML = '';
     rows.forEach(r => {
-      const sido   = LCTN_TO_SIDO[r.LCTN_SC_NM] || r.LCTN_SC_NM;
-      /* ORG_RDNMA: "경기도 수원시 팔달구 …" / "광주광역시 북구 …" 형태.
-         REGIONS의 시군구 키는 '수원시 팔달구'처럼 두 어절인 경우(32곳)가 있어
-         두 어절 → 한 어절 순으로 실제 키와 대조해야 한다.
-         (그냥 addrParts[1]만 쓰면 수원·청주·창원·포항 등에서 매칭이 실패한다) */
-      const addrParts = (r.ORG_RDNMA || '').trim().split(/\s+/);
-      const inRegion = v => !!(REGIONS[sido] && REGIONS[sido][v]);
-      let sigun = '';
-      if(inRegion(addrParts.slice(1,3).join(' '))) sigun = addrParts.slice(1,3).join(' ');
-      else if(inRegion(addrParts[1]))              sigun = addrParts[1];
-      else if(REGIONS[sido] && Object.keys(REGIONS[sido]).length === 1)
-        sigun = Object.keys(REGIONS[sido])[0];     // 세종처럼 시군구가 하나뿐인 경우
-
-      /* API용 지역코드는 NEIS의 시도명에서 직접 확정한다.
-         통합특별시는 '광주'와 '전남'이 한 시도로 합쳐져 있어, 주소 파싱이 실패해
-         시군구를 못 얻으면 엉뚱한 쪽(예: 광주 학교인데 전남)으로 조회될 수 있다. */
-      const apiSido = SIDO_API[r.LCTN_SC_NM] || toSidoApi(sido, sigun);
+      const { sido, sigun, apiSido } = parseSchoolRegion(r);
 
       const el = document.createElement('div');
       el.className = 'school-item';
@@ -1609,8 +1639,23 @@ async function fetchTemps(sido, sigun){
     + `&timezone=Asia%2FSeoul`
     + `&past_days=3&forecast_days=4`;  // 과거3 + 오늘+미래3 = 총7일
 
+  const ck = 'om_' + lat.toFixed(3) + ',' + lon.toFixed(3);
+  const cached = () => {
+    try{
+      const c = JSON.parse(localStorage.getItem(ck));
+      if(c && Date.now()-c.t < 3*3600*1000 && c.v && Object.keys(c.v).length) return c.v;
+    }catch{}
+    return null;
+  };
+
   try{
     const r = await fetch(url, {signal: AbortSignal.timeout(6000)});
+    if(!r.ok){
+      // 429(호출 제한) 등은 본문에 사유가 담겨 온다 — 조용히 넘기지 않는다
+      let why = 'HTTP ' + r.status;
+      try{ const b = await r.json(); if(b?.reason) why += ' · ' + b.reason; }catch{}
+      throw new Error(why);
+    }
     const d = await r.json();
     const times  = d?.daily?.time                      || [];
     const temps  = d?.daily?.temperature_2m_max        || [];
@@ -1621,11 +1666,14 @@ async function fetchTemps(sido, sigun){
     times.forEach((t,i) => {
       map[t] = { temp: temps[i], app: apps[i], min: mins[i], code: codes[i] };
     });
+    if(!Object.keys(map).length) throw new Error('빈 응답');   // 빈 map을 정상으로 넘기지 않는다
+    try{ localStorage.setItem(ck, JSON.stringify({t:Date.now(), v:map})); }catch{}
     return map;
     // {'2026-08-05': {temp:34.1, app:37.2, min:26.4, code:1}, ...}
   } catch(e){
-    console.warn('Open-Meteo 오류:', e.message);
-    return null;
+    console.warn('Open-Meteo 오류:', e.message, '→ 캐시 사용 시도');
+    // 기온은 하루 단위 값이라 최근 3시간 캐시를 그대로 써도 무리가 없다
+    return cached();
   }
 }
 
@@ -2256,8 +2304,9 @@ function resetPanels(){
 
 async function go(opts){
   const force = opts && opts.force;
-  const loc=loadLoc();
+  let loc=loadLoc();
   if(!loc){ return; }
+  loc = await healLoc(loc);            // 예전 저장값의 지역 정보 보정
   // 시군구가 비어 있거나 목록에 없으면 조회 지역이 틀어질 수 있으므로 알린다
   if(!loc.sigun || !(REGIONS[loc.sido] && REGIONS[loc.sido][loc.sigun])){
     console.warn('시군구를 확정하지 못했습니다:', loc);
