@@ -1093,8 +1093,25 @@ function parseSchoolRegion(r){
 /* 예전 버전에서 저장된 지역에는 apiSido가 없다.
    학교명이 남아 있으면 NEIS를 한 번 다시 조회해 조용히 보정한다.
    (NEIS는 CORS가 열려 있어 프록시 없이 직접 호출된다) */
+const LOC_VER = 3;   // 지역 저장 형식 버전 — 올리면 저장된 값이 한 번 다시 검증된다
+
 async function healLoc(loc){
-  if(!loc || loc.apiSido || !loc.schoolName) return loc;
+  if(!loc) return loc;
+
+  /* 값끼리 앞뒤가 안 맞으면 NEIS를 부르지 않고 그 자리에서 바로잡는다.
+     (예: 시군구는 광주의 '서구'인데 apiSido가 '전남'으로 저장된 경우) */
+  if(loc.sido === UNIFIED_SIDO && loc.sigun){
+    const should = isGwangjuArea(loc.sido, loc.sigun) ? '광주' : '전남';
+    if(loc.apiSido !== should){
+      loc = { ...loc, apiSido: should, locV: LOC_VER };
+      saveLoc(loc);
+      console.info('지역 불일치 교정:', loc);
+    }
+  }
+
+  // 형식 버전이 최신이면 더 볼 것 없음
+  if(loc.locV === LOC_VER || !loc.schoolName) return loc;
+
   try{
     const url = `${NEIS_URL}?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=10`
               + `&SCHUL_NM=${encodeURIComponent(loc.schoolName)}`;
@@ -1103,7 +1120,8 @@ async function healLoc(loc){
     const r = rows.find(x => x.SCHUL_NM === loc.schoolName) || rows[0];
     if(!r) return loc;
     const g = parseSchoolRegion(r);
-    const next = { ...loc, sido:g.sido, sigun:g.sigun || loc.sigun || '', apiSido:g.apiSido };
+    const next = { ...loc, sido:g.sido, sigun:g.sigun || loc.sigun || '',
+                   apiSido:g.apiSido, locV:LOC_VER };
     saveLoc(next); applyLoc(next);
     console.info('지역 정보 자동 보정:', next);
     return next;
@@ -1226,6 +1244,7 @@ async function searchSchool(){
           sido,
           sigun,
           apiSido,                                   // API 조회용 지역(광주/전남 등)
+          locV: LOC_VER,
           label: `${r.SCHUL_NM} (${sido} ${sigun})`.trim(),
           schoolName: r.SCHUL_NM,
         });
@@ -1260,7 +1279,8 @@ function onSigunChange(){
   const sido  = document.getElementById('selSido').value;
   const sigun = document.getElementById('selSigun').value;
   if(sido && sigun){
-    setPending({ sido, sigun, apiSido: toSidoApi(sido, sigun), label: `${sido} ${sigun}` });
+    setPending({ sido, sigun, apiSido: toSidoApi(sido, sigun), locV: LOC_VER,
+                 label: `${sido} ${sigun}` });
   } else {
     setPending(null);
   }
@@ -1621,7 +1641,10 @@ function distKm(lat1, lon1, lat2, lon2){
   return 2*R*Math.asin(Math.min(1,Math.sqrt(a)));
 }
 
+let _tempErr = null;   // 기온 조회 실패 사유 (화면에 표시)
+
 async function fetchTemps(sido, sigun){
+  _tempErr = null;
   const coord = getCoord(sido, sigun);
   if(!coord) return null;
   const [lat,lon] = coord;
@@ -1648,8 +1671,11 @@ async function fetchTemps(sido, sigun){
     return null;
   };
 
+  // 1차 6초 → 실패 시 2초 뒤 10초 타임아웃으로 한 번 더 (느린 학교망 대비)
+  for(let attempt=0; attempt<2; attempt++){
   try{
-    const r = await fetch(url, {signal: AbortSignal.timeout(6000)});
+    if(attempt) await sleep(2000);
+    const r = await fetch(url, {signal: AbortSignal.timeout(attempt ? 10000 : 6000)});
     if(!r.ok){
       // 429(호출 제한) 등은 본문에 사유가 담겨 온다 — 조용히 넘기지 않는다
       let why = 'HTTP ' + r.status;
@@ -1671,10 +1697,14 @@ async function fetchTemps(sido, sigun){
     return map;
     // {'2026-08-05': {temp:34.1, app:37.2, min:26.4, code:1}, ...}
   } catch(e){
-    console.warn('Open-Meteo 오류:', e.message, '→ 캐시 사용 시도');
-    // 기온은 하루 단위 값이라 최근 3시간 캐시를 그대로 써도 무리가 없다
-    return cached();
+    _tempErr = e.message;
+    console.warn('Open-Meteo 오류(' + (attempt+1) + '차):', e.message);
   }
+  }
+  // 기온은 하루 단위 값이라 최근 3시간 캐시를 그대로 써도 무리가 없다
+  const c = cached();
+  if(c) console.info('기온: 캐시 사용');
+  return c;
 }
 
 function todayYMD(){ const d=new Date(); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`; }
@@ -2306,13 +2336,6 @@ async function go(opts){
   const force = opts && opts.force;
   let loc=loadLoc();
   if(!loc){ return; }
-  loc = await healLoc(loc);            // 예전 저장값의 지역 정보 보정
-  // 시군구가 비어 있거나 목록에 없으면 조회 지역이 틀어질 수 있으므로 알린다
-  if(!loc.sigun || !(REGIONS[loc.sido] && REGIONS[loc.sido][loc.sigun])){
-    console.warn('시군구를 확정하지 못했습니다:', loc);
-    showErr('⚠️ 지역 정보가 완전하지 않습니다. 학교(지역)를 다시 선택해 주세요.'
-      + (loc.sigun ? '' : ' (시/군/구 미지정)'), true);
-  }
   if(_busy) return;                                  // 중복 실행 방지
   if(typeof document.hidden !== 'undefined' && document.hidden && !force) return;  // 탭이 안 보이면 건너뜀
   _busy = true;
@@ -2327,6 +2350,16 @@ async function go(opts){
     document.getElementById('sd').textContent='데이터를 가져오고 있습니다…';
     document.getElementById('wb').style.display='none';
     resetPanels();                                   // 이전 학교 값 잔상 제거
+  }
+
+  // 지역 보정은 NEIS 호출이 걸릴 수 있으므로 로딩 화면을 띄운 뒤에 수행한다
+  loc = await healLoc(loc);
+
+  // 보정 후에도 시군구가 비어 있으면 조회 지역이 틀어질 수 있으므로 알린다
+  let notes = [];
+  if(!loc.sigun || !(REGIONS[loc.sido] && REGIONS[loc.sido][loc.sigun])){
+    console.warn('시군구를 확정하지 못했습니다:', loc);
+    notes.push('지역 정보가 완전하지 않습니다. 학교(지역)를 다시 선택해 주세요.');
   }
 
   try{
@@ -2349,6 +2382,11 @@ async function go(opts){
     render(dust, warnList||[], tempMap);
     renderCal(loc, fcstMap||{}, warnList||[], tempMap||{});
     saveSnap({dust, warnList:warnList||[], fcstMap:fcstMap||{}, tempMap:tempMap||null}, loc);
+
+    if(!tempMap || !Object.keys(tempMap).length){
+      notes.push('기온 정보를 불러오지 못했습니다' + (_tempErr ? ' — ' + _tempErr : '') + '.');
+    }
+    if(notes.length) showErr('⚠️ ' + notes.join('\n'), true);
   } catch(e){
     console.error(e);
     const snap = loadSnap(loc);
