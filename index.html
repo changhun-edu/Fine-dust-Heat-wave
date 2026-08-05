@@ -675,6 +675,9 @@
 </div>
 
 <div class="errbox" id="err" style="display:none"></div>
+<!-- 진단 표시줄: 어떤 빌드인지·무엇으로 조회했는지 확인용 -->
+<div id="diag" style="margin-top:8px;font-size:11px;color:var(--muted);font-weight:700;
+     word-break:break-all;opacity:.75;">준비중…</div>
 
 
 <div class="credit">만든이 2026 최창훈</div>
@@ -1043,6 +1046,7 @@ function tick(){
    LOCATION — localStorage 저장/로드
 ═══════════════════════════════════════════ */
 const LS = 'outdoor_loc_v2';
+const BUILD = '2026.08.05-d';   // 화면 하단에 표시 — 어떤 빌드인지 확인용
 
 function saveLoc(loc){
   localStorage.setItem(LS, JSON.stringify(loc));
@@ -1418,11 +1422,28 @@ function toSidoApi(sidoFull, sigun){
 
 /* 저장된 지역(loc) 기준 조회 파라미터.
    apiSido가 있으면 그것을 신뢰한다(학교 검색 시 NEIS 시도명으로 확정된 값). */
+/* 통합특별시는 API가 '광주'/'전남'으로 나뉘어 있어 판별이 필요하다.
+   시군구 → 저장된 확정값 → 좌표(광주 경계 상자) 순으로 본다.
+   좌표까지 쓰는 이유: NEIS 시도명·주소 표기가 통합 이후 어떻게 오는지
+   확실하지 않아, 이름에만 기대면 이번처럼 조용히 틀릴 수 있기 때문이다. */
+function unifiedApiSido(loc){
+  const sg = loc?.sigun || '';
+  if(GWANGJU_GU.includes(sg)) return '광주';
+  if(sg && REGIONS[UNIFIED_SIDO] && REGIONS[UNIFIED_SIDO][sg]) return '전남';
+  // 시군구가 있는데도 목록에 없거나 아예 비어 있으면, 저장된 확정값은
+  // 예전 잘못된 로직에서 나왔을 수 있으므로 신뢰하지 않고 좌표로 판정한다
+  if(sg && (loc?.apiSido === '광주' || loc?.apiSido === '전남')) return loc.apiSido;
+  const c = getCoord(UNIFIED_SIDO, sg);
+  if(c && c[0] >= 35.03 && c[0] <= 35.28 && c[1] >= 126.60 && c[1] <= 127.00) return '광주';
+  return '전남';
+}
 function apiSidoOf(loc){
+  if(loc && loc.sido === UNIFIED_SIDO) return unifiedApiSido(loc);
   if(loc && loc.apiSido) return loc.apiSido;
   return toSidoApi(loc?.sido || '', loc?.sigun || '');
 }
 function apiStnOf(loc){
+  if(loc && loc.sido === UNIFIED_SIDO) return unifiedApiSido(loc) === '광주' ? '156' : '165';
   if(loc && loc.apiSido === '광주') return '156';
   if(loc && loc.apiSido === '전남') return '165';
   return toStnId(loc?.sido || '', loc?.sigun || '');
@@ -2309,6 +2330,7 @@ function clearSnap(){ try{ localStorage.removeItem(SNAP_KEY); }catch{} }
 const hhmm = ts => { const d=new Date(ts); return pad(d.getHours())+':'+pad(d.getMinutes()); };
 
 let _busy = false;
+let _gen  = 0;      // 조회 세대 — 나중 조회가 시작되면 이전 조회 결과는 버린다
 
 /* 지역을 바꿨을 때 이전 학교의 값이 그대로 남아 있으면 오해를 부른다.
    판정 카드와 마찬가지로 항목별 확인·지표·캘린더도 '조회중'으로 되돌린다. */
@@ -2336,8 +2358,10 @@ async function go(opts){
   const force = opts && opts.force;
   let loc=loadLoc();
   if(!loc){ return; }
-  if(_busy) return;                                  // 중복 실행 방지
+  if(_busy && !force) return;                        // 자동 갱신만 중복 차단
   if(typeof document.hidden !== 'undefined' && document.hidden && !force) return;  // 탭이 안 보이면 건너뜀
+  const myGen = ++_gen;                              // 이 조회의 세대 번호
+  const alive = () => myGen === _gen;                // 더 최근 조회가 시작됐으면 false
   _busy = true;
 
   hideErr();
@@ -2379,6 +2403,7 @@ async function go(opts){
     const fcstMap  = await fetchFcst().catch(()=>({}));
     const tempMap  = await tempP;
 
+    if(!alive()) return;                             // 그 사이 지역이 바뀌었으면 폐기
     render(dust, warnList||[], tempMap);
     renderCal(loc, fcstMap||{}, warnList||[], tempMap||{});
     saveSnap({dust, warnList:warnList||[], fcstMap:fcstMap||{}, tempMap:tempMap||null}, loc);
@@ -2386,9 +2411,19 @@ async function go(opts){
     if(!tempMap || !Object.keys(tempMap).length){
       notes.push('기온 정보를 불러오지 못했습니다' + (_tempErr ? ' — ' + _tempErr : '') + '.');
     }
+    // 어떤 지역·측정소로 조회했는지 항상 남긴다 (문제 파악용)
+    const diag = `[${BUILD}] 조회지역=${apiSidoOf(loc)} / 지점=${apiStnOf(loc)} `
+               + `/ 시도=${loc.sido} / 시군구=${loc.sigun||'(없음)'} `
+               + `/ 좌표=${JSON.stringify(getCoord(loc.sido, loc.sigun))} `
+               + `/ 측정소=${dust.station||'(지역평균)'} / 기온=${tempMap?Object.keys(tempMap).length+'일':'실패'}`;
+    console.info(diag);
+    const dg2 = document.getElementById('diag');
+    if(dg2) dg2.textContent = diag;
+
     if(notes.length) showErr('⚠️ ' + notes.join('\n'), true);
   } catch(e){
     console.error(e);
+    if(!alive()) return;
     const snap = loadSnap(loc);
     if(snap){
       // 갱신만 실패했을 뿐이므로 마지막 정상 결과를 그대로 유지한다
@@ -2405,7 +2440,7 @@ async function go(opts){
       document.getElementById('sd').textContent='잠시 후 다시 시도해주세요';
     }
   } finally {
-    _busy = false;
+    if(alive()) _busy = false;
   }
 }
 
