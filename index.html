@@ -1166,15 +1166,23 @@ async function searchSchool(){
     list.innerHTML = '';
     rows.forEach(r => {
       const sido   = LCTN_TO_SIDO[r.LCTN_SC_NM] || r.LCTN_SC_NM;
-      // ORG_RDNMA: "광주광역시 북구 일곡로 00" 형태 → 시군구 추출
-      const addrParts = (r.ORG_RDNMA || '').split(' ');
-      const sigun = addrParts.length >= 2 ? addrParts[1] : '';
+      /* ORG_RDNMA: "경기도 수원시 팔달구 …" / "광주광역시 북구 …" 형태.
+         REGIONS의 시군구 키는 '수원시 팔달구'처럼 두 어절인 경우(32곳)가 있어
+         두 어절 → 한 어절 순으로 실제 키와 대조해야 한다.
+         (그냥 addrParts[1]만 쓰면 수원·청주·창원·포항 등에서 매칭이 실패한다) */
+      const addrParts = (r.ORG_RDNMA || '').trim().split(/\s+/);
+      const inRegion = v => !!(REGIONS[sido] && REGIONS[sido][v]);
+      let sigun = '';
+      if(inRegion(addrParts.slice(1,3).join(' '))) sigun = addrParts.slice(1,3).join(' ');
+      else if(inRegion(addrParts[1]))              sigun = addrParts[1];
+      else if(REGIONS[sido] && Object.keys(REGIONS[sido]).length === 1)
+        sigun = Object.keys(REGIONS[sido])[0];     // 세종처럼 시군구가 하나뿐인 경우
 
       const el = document.createElement('div');
       el.className = 'school-item';
       el.innerHTML = `
-        <div class="school-name">${r.SCHUL_NM} <span style="font-size:12px;color:var(--muted);font-weight:700;">${r.SCHUL_KND_SC_NM}</span></div>
-        <div class="school-addr">📍 ${r.ORG_RDNMA || r.LCTN_SC_NM}</div>
+        <div class="school-name">${esc(r.SCHUL_NM)} <span style="font-size:12px;color:var(--muted);font-weight:700;">${esc(r.SCHUL_KND_SC_NM)}</span></div>
+        <div class="school-addr">📍 ${esc(r.ORG_RDNMA || r.LCTN_SC_NM)}</div>
       `;
       el.onclick = () => {
         document.querySelectorAll('.school-item').forEach(i=>i.classList.remove('selected'));
@@ -1190,7 +1198,7 @@ async function searchSchool(){
     });
 
   } catch(e){
-    list.innerHTML = `<div class="school-msg">검색 오류: ${e.message}</div>`;
+    list.innerHTML = `<div class="school-msg">검색 오류: ${esc(e.message)}</div>`;
   } finally {
     btn.disabled = false;
     btn.textContent = '검색';
@@ -1255,7 +1263,8 @@ async function checkLocalProxy(){
   try{
     const r = await fetch('http://localhost:3000/api/proxy?url=' +
       encodeURIComponent('https://apis.data.go.kr'), {signal: AbortSignal.timeout(1500)});
-    _useLocalProxy = true;
+    // 3000번 포트를 다른 개발 서버가 쓰고 있을 수 있으므로 정상 응답인지까지 확인
+    _useLocalProxy = r.ok;
   } catch{
     _useLocalProxy = false;
   }
@@ -2099,7 +2108,8 @@ function renderCal(loc, fcstMap, warnList, tempMap){
       else if(refTemp!=null && refTemp>=38) msgs.push('🚨 체감 38°↑ 위험');
       else if(refTemp!=null && refTemp>=35) msgs.push('폭염 주의');
       if(dTrop || isTropical) msgs.push('🌙 열대야');
-      tmrMsg = msgs.length ? msgs.join(' · ') : (sg ? sg+' 예상' : '');
+      // sg는 예보문에서 파싱한 외부 문자열이므로 이스케이프해서 넣는다
+      tmrMsg = msgs.length ? msgs.join(' · ') : (sg ? esc(sg)+' 예상' : '');
     }
 
     // ── 강수 등급 ──
