@@ -289,6 +289,33 @@
     .cd.storm-day { border-color:#7c3aed !important; }
 
     .credit{text-align:right;margin-top:18px;padding-bottom:6px;font-size:11px;font-weight:700;color:rgba(255,255,255,.15);letter-spacing:0.04em;user-select:none;}
+    /* ── 출처 표시 줄 ── */
+    .data-src{text-align:right;margin-top:18px;font-size:11px;font-weight:700;color:rgba(255,255,255,.35);line-height:1.6;word-break:keep-all;}
+    .data-src a{color:inherit;}
+    .data-src + .credit{margin-top:4px;}
+
+    /* ── 오픈소스 라이선스 버튼·팝업 ── */
+    .lic-btn{position:fixed;right:16px;bottom:16px;z-index:9000;background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:color .2s,border-color .2s;}
+    .lic-btn:hover,.lic-btn:focus-visible{color:var(--good);border-color:var(--good);outline:none;}
+    body{padding-bottom:72px;}
+    .lic-modal{max-width:720px;max-height:86vh;display:flex;flex-direction:column;padding:0;overflow:hidden;}
+    .lic-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:20px 22px 14px;border-bottom:1px solid var(--border);}
+    .lic-head h2{margin:0;font-size:clamp(17px,2vw,21px);}
+    .lic-x{background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;font-size:18px;font-weight:900;cursor:pointer;font-family:inherit;}
+    .lic-x:hover{color:var(--text);}
+    .lic-body{overflow-y:auto;padding:16px 22px 22px;font-size:13px;line-height:1.7;color:rgba(255,255,255,.8);font-weight:500;}
+    .lic-body h3{font-size:14px;font-weight:900;color:var(--text);margin:18px 0 8px;}
+    .lic-body h3:first-child{margin-top:0;}
+    .lic-body a{color:var(--good);word-break:break-all;}
+    .lic-body ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+    .lic-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
+    .lic-item b{color:var(--text);}
+    .lic-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:rgba(0,208,132,.14);color:var(--good);font-size:11px;font-weight:800;vertical-align:1px;}
+    .lic-meta{color:var(--muted);font-size:12px;margin-top:2px;}
+    .lic-body details{margin-top:8px;}
+    .lic-body summary{cursor:pointer;color:var(--muted);font-size:12px;font-weight:800;}
+    .lic-body pre{margin-top:8px;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;line-height:1.55;color:rgba(255,255,255,.7);background:rgba(0,0,0,.25);border-radius:10px;padding:12px;max-height:320px;overflow:auto;}
+    .lic-note{color:var(--muted);font-size:12px;}
   </style>
 </head>
 <body>
@@ -681,6 +708,12 @@
 </div>
 
 
+<div class="data-src">
+  데이터 출처: 에어코리아(한국환경공단) · 기상청 — 공공데이터포털 ·
+  <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> (CC BY 4.0) ·
+  나이스 교육정보 개방포털<br>
+  ※ 실시간 대기 자료는 측정 직후의 미확정 값으로, 이후 수정될 수 있습니다.
+</div>
 <div class="credit">만든이 2026 최창훈</div>
 </div><!-- /page-wrap -->
 
@@ -2589,6 +2622,150 @@ document.addEventListener('visibilitychange', ()=>{
     if(!snap || Date.now()-snap.t > 10*60*1000) go({force:true});
   }
 });
+</script>
+
+<!-- ── 오픈소스 라이선스 ── -->
+<button class="lic-btn" id="licBtn" type="button" onclick="openLic()" aria-haspopup="dialog">ⓘ 오픈소스 라이선스</button>
+<div class="modal-bg" id="licBg" style="display:none" onclick="if(event.target===this)closeLic()">
+  <div class="modal lic-modal" role="dialog" aria-modal="true" aria-labelledby="licTitle">
+    <div class="lic-head">
+      <h2 id="licTitle">ⓘ 오픈소스 라이선스 · 출처 고지</h2>
+      <button class="lic-x" type="button" onclick="closeLic()" aria-label="닫기">✕</button>
+    </div>
+    <div class="lic-body">
+
+      <h3>이 사이트의 저작권</h3>
+      <p>「오늘 야외활동 가능할까?」의 기획·화면 구성·안내 문구·소스 코드는 제작자 <b>최창훈</b>의 저작물입니다. © 2026 최창훈.</p>
+
+      <h3>글꼴</h3>
+      <ul>
+        <li class="lic-item">
+          <b>Noto Sans KR</b><span class="lic-tag">SIL OFL 1.1</span>
+          <div class="lic-meta">Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'<br>
+          Google Fonts를 통해 불러옵니다 · <a href="https://fonts.google.com/noto/specimen/Noto+Sans+KR" target="_blank" rel="noopener">fonts.google.com</a></div>
+          <details><summary>SIL Open Font License 1.1 전문 보기</summary><pre>Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name &#x27;Source&#x27;
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded, 
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></details>
+        </li>
+      </ul>
+
+      <h3>데이터 출처</h3>
+      <ul>
+        <li class="lic-item"><b>에어코리아 — 한국환경공단</b><span class="lic-tag">공공데이터</span>
+          <div class="lic-meta">대기오염정보(시도별 실시간 측정정보·미세먼지 예보), 측정소정보 조회 서비스 · 공공데이터포털(data.go.kr) 오픈 API<br>
+          실시간 자료는 측정 직후의 미확정 값으로, 이후 수정될 수 있습니다.</div></li>
+        <li class="lic-item"><b>기상청</b><span class="lic-tag">공공데이터</span>
+          <div class="lic-meta">기상특보 조회 서비스 · 공공데이터포털(data.go.kr) 오픈 API</div></li>
+        <li class="lic-item"><b>Open-Meteo</b><span class="lic-tag">CC BY 4.0</span>
+          <div class="lic-meta">기온·체감온도·날씨 예보 — <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a><br>
+          데이터 라이선스: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0 International</a></div></li>
+        <li class="lic-item"><b>나이스 교육정보 개방포털 — 교육부</b><span class="lic-tag">공공데이터</span>
+          <div class="lic-meta">학교기본정보 오픈 API (학교 이름 검색) · <a href="https://open.neis.go.kr/" target="_blank" rel="noopener">open.neis.go.kr</a></div></li>
+      </ul>
+
+      <h3>이모지</h3>
+      <p class="lic-note">화면의 이모지(🏫 😷 🌡️ 등)는 유니코드 표준 문자이며, 이미지 파일 없이 보는 사람의 기기(운영체제) 글꼴로 표시됩니다.</p>
+
+      <h3>소프트웨어 구성요소</h3>
+      <p class="lic-note">이 사이트는 외부 자바스크립트 라이브러리를 포함하지 않는 단일 HTML 파일입니다. 따라서 Apache-2.0 · MIT · BSD-3-Clause · ISC 라이선스가 적용되는 구성요소는 없습니다.</p>
+
+    </div>
+  </div>
+</div>
+<script>
+function openLic(){ document.getElementById('licBg').style.display='flex'; }
+function closeLic(){ document.getElementById('licBg').style.display='none'; document.getElementById('licBtn').focus(); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && document.getElementById('licBg').style.display!=='none') closeLic(); });
 </script>
 </body>
 </html>
